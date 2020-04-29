@@ -44,3 +44,5 @@
 *.log
 *.tlog
 *.res
+*.ipch
+*.opendb
