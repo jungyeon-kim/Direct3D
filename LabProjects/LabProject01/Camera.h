@@ -23,13 +23,8 @@ public:
 	virtual ~CCamera();
 
 private:
-	float						m_fxPosition = 0.0f;
-	float						m_fyPosition = 0.0f;
-	float						m_fzPosition = 0.0f;
-
-	float						m_fxRotation = 0.0f;
-	float						m_fyRotation = 0.0f;
-	float						m_fzRotation = 0.0f;
+	XMFLOAT3 Position{};
+	XMFLOAT3 Rotation{};
 
 	float						m_fFOVAngle = 90.0f;
 	float						m_fProjectRectDistance = 1.0f;
@@ -42,8 +37,8 @@ public:
 	CPoint3D ProjectionTransform(CPoint3D& f3Camera);
 	CPoint3D ScreenTransform(CPoint3D& f3Projection);
 
-	void SetPosition(float x, float y, float z) { m_fxPosition = x; m_fyPosition = y; m_fzPosition = z; }
-	void SetRotation(float fPitch, float fYaw, float fRoll) { m_fxRotation = fPitch; m_fyRotation = fYaw; m_fzRotation = fRoll; }
+	void SetPosition(float x, float y, float z) { Position.x = x; Position.y = y; Position.z = z; }
+	void SetRotation(float fPitch, float fYaw, float fRoll) { Rotation.x = fPitch; Rotation.y = fYaw; Rotation.z = fRoll; }
 
 	void SetViewport(int xStart, int yStart, int nWidth, int nHeight);
 	void SetFOVAngle(float fFOVAngle);

@@ -8,44 +8,59 @@ CGameObject::~CGameObject(void)
 
 CPoint3D CGameObject::WorldTransform(CPoint3D& f3Model)
 {
-	float fPitch = DegreeToRadian(m_fxRotation);
-	float fYaw = DegreeToRadian(m_fyRotation);
-	float fRoll = DegreeToRadian(m_fzRotation);
+	float fPitch = XMConvertToRadians(Rotation.x);
+	float fYaw = XMConvertToRadians(Rotation.y);
+	float fRoll = XMConvertToRadians(Rotation.z);
 
 	CPoint3D f3World = f3Model;
 	CPoint3D f3Rotated = f3Model;
+
 	if (fPitch != 0.0f)
 	{
-		f3Rotated.y = float(f3World.y * cos(fPitch) - f3World.z * sin(fPitch));
-		f3Rotated.z = float(f3World.y * sin(fPitch) + f3World.z * cos(fPitch));
+		const XMFLOAT3X3 RotResult{ Matrix3x3::Multiply(
+			XMFLOAT3X3(0.f, 0.f, 0.f, 0.f, f3World.y, 0.f, 0.f, 0.f, f3World.z),
+			XMFLOAT3X3(1.f, 0.f, 0.f, 0.f, cos(fPitch), sin(fPitch), 0.f, -sin(fPitch), cos(fPitch))
+			) };
+		f3Rotated.y = RotResult._22 + RotResult._32;
+		f3Rotated.z = RotResult._23 + RotResult._33;;
 		f3World.y = f3Rotated.y;
 		f3World.z = f3Rotated.z;
 	}
 	if (fYaw != 0.0f)
 	{
-		f3Rotated.x = float(f3World.x * cos(fYaw) + f3World.z * sin(fYaw));
-		f3Rotated.z = float(-f3World.x * sin(fYaw) + f3World.z * cos(fYaw));
+		const XMFLOAT3X3 RotResult{ Matrix3x3::Multiply(
+			XMFLOAT3X3(f3World.x, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, f3World.z),
+			XMFLOAT3X3(cos(fYaw), 0.f, sin(fYaw), 0.f, 1.f, 0.f, -sin(fYaw), 0.f, cos(fYaw))
+			) };
+		f3Rotated.x = RotResult._11 + RotResult._31;
+		f3Rotated.z = RotResult._13 + RotResult._33;
 		f3World.x = f3Rotated.x;
 		f3World.z = f3Rotated.z;
 	}
 	if (fRoll != 0.0f)
 	{
-		f3Rotated.x = float(f3World.x * cos(fRoll) - f3World.y * sin(fRoll));
-		f3Rotated.y = float(f3World.x * sin(fRoll) + f3World.y * cos(fRoll));
+		const XMFLOAT3X3 RotResult{ Matrix3x3::Multiply(
+			XMFLOAT3X3(f3World.x, 0.f, 0.f, 0.f, f3World.y, 0.f, 0.f, 0.f, 0.f),
+			XMFLOAT3X3(cos(fRoll), sin(fRoll), 0.f, -sin(fRoll), cos(fRoll), 0.f, 0.f, 0.f, 1.f)
+			) };
+		f3Rotated.x = RotResult._11 + RotResult._21;
+		f3Rotated.y = RotResult._12 + RotResult._22;
 		f3World.x = f3Rotated.x;
 		f3World.y = f3Rotated.y;
 	}
 
-	f3World.x += m_fxPosition;
-	f3World.y += m_fyPosition;
-	f3World.z += m_fzPosition;
+	const XMFLOAT3& PosResult{ Vector3::Add(XMFLOAT3(f3World.x, f3World.y, f3World.z), Position) };
+	f3World.x = PosResult.x;
+	f3World.y = PosResult.y;
+	f3World.z = PosResult.z;
 
 	return(f3World);
 }
 
 void CGameObject::Animate(float fElapsedTime)
 {
-	Rotate(m_fxRotationSpeed * fElapsedTime, m_fyRotationSpeed * fElapsedTime, m_fzRotationSpeed * fElapsedTime);
+	XMFLOAT3 NewRotation{ Vector3::Multiply(RotationSpeed, XMFLOAT3(fElapsedTime, fElapsedTime, fElapsedTime)) };
+	Rotate(NewRotation.x, NewRotation.y, NewRotation.z);
 }
 
 void CGameObject::Render(HDC hDCFrameBuffer)
