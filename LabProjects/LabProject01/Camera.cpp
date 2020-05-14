@@ -38,10 +38,10 @@ CPoint3D CCamera::CameraTransform(CPoint3D& f3World)
 {
 	CPoint3D f3Camera = f3World;
 
-	const XMFLOAT3& PosResult{ Vector3::Subtract(XMFLOAT3(f3Camera.x, f3Camera.y, f3Camera.z), Position) };
-	f3Camera.x = PosResult.x;
-	f3Camera.y = PosResult.y;
-	f3Camera.z = PosResult.z;
+	const XMFLOAT3& PosVector{ Vector3::Subtract(XMFLOAT3(f3Camera.x, f3Camera.y, f3Camera.z), Position) };
+	f3Camera.x = PosVector.x;
+	f3Camera.y = PosVector.y;
+	f3Camera.z = PosVector.z;
 
 	float fPitch = XMConvertToDegrees(-Rotation.x);
 	float fYaw = XMConvertToDegrees(-Rotation.y);
@@ -50,34 +50,46 @@ CPoint3D CCamera::CameraTransform(CPoint3D& f3World)
 	CPoint3D f3Rotated = f3Camera;
 	if (fPitch != 0.0f)
 	{
-		const XMFLOAT3X3 RotResult{ Matrix3x3::Multiply(
+		const XMFLOAT3X3 RotMatrix{ Matrix3x3::Multiply(
 			XMFLOAT3X3(0.f, 0.f, 0.f, 0.f, f3World.y, 0.f, 0.f, 0.f, f3World.z),
-			XMFLOAT3X3(1.f, 0.f, 0.f, 0.f, cos(fPitch), sin(fPitch), 0.f, -sin(fPitch), cos(fPitch))
+			XMFLOAT3X3(1.f, 0.f, 0.f, 0.f, XMScalarCos(fPitch), XMScalarSin(fPitch), 0.f, -XMScalarSin(fPitch), XMScalarCos(fPitch))
 			) };
-		f3Rotated.y = RotResult._22 + RotResult._32;
-		f3Rotated.z = RotResult._23 + RotResult._33;;
+		const XMFLOAT3& RotVector{ Vector3::Add(
+			XMFLOAT3(0.f, RotMatrix._22, RotMatrix._23),
+			XMFLOAT3(0.f, RotMatrix._32, RotMatrix._33)
+			) };
+		f3Rotated.y = RotVector.y;
+		f3Rotated.z = RotVector.z;
 		f3Camera.y = f3Rotated.y;
 		f3Camera.z = f3Rotated.z;
 	}
 	if (fYaw != 0.0f)
 	{
-		const XMFLOAT3X3 RotResult{ Matrix3x3::Multiply(
+		const XMFLOAT3X3 RotMatrix{ Matrix3x3::Multiply(
 			XMFLOAT3X3(f3World.x, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, f3World.z),
-			XMFLOAT3X3(cos(fYaw), 0.f, sin(fYaw), 0.f, 1.f, 0.f, -sin(fYaw), 0.f, cos(fYaw))
+			XMFLOAT3X3(XMScalarCos(fYaw), 0.f, XMScalarSin(fYaw), 0.f, 1.f, 0.f, -XMScalarSin(fYaw), 0.f, XMScalarCos(fYaw))
 			) };
-		f3Rotated.x = RotResult._11 + RotResult._31;
-		f3Rotated.z = RotResult._13 + RotResult._33;
+		const XMFLOAT3& RotVector{ Vector3::Add(
+			XMFLOAT3(RotMatrix._11, 0.f, RotMatrix._13),
+			XMFLOAT3(RotMatrix._31, 0.f, RotMatrix._33)
+			) };
+		f3Rotated.x = RotVector.x;
+		f3Rotated.z = RotVector.z;
 		f3Camera.x = f3Rotated.x;
 		f3Camera.z = f3Rotated.z;
 	}
 	if (fRoll != 0.0f)
 	{
-		const XMFLOAT3X3 RotResult{ Matrix3x3::Multiply(
+		const XMFLOAT3X3 RotMatrix{ Matrix3x3::Multiply(
 			XMFLOAT3X3(f3World.x, 0.f, 0.f, 0.f, f3World.y, 0.f, 0.f, 0.f, 0.f),
-			XMFLOAT3X3(cos(fRoll), sin(fRoll), 0.f, -sin(fRoll), cos(fRoll), 0.f, 0.f, 0.f, 1.f)
+			XMFLOAT3X3(XMScalarCos(fRoll), XMScalarSin(fRoll), 0.f, -XMScalarSin(fRoll), XMScalarCos(fRoll), 0.f, 0.f, 0.f, 1.f)
 			) };
-		f3Rotated.x = RotResult._11 + RotResult._21;
-		f3Rotated.y = RotResult._12 + RotResult._22;
+		const XMFLOAT3& RotVector{ Vector3::Add(
+			XMFLOAT3(RotMatrix._11, RotMatrix._12, 0.f),
+			XMFLOAT3(RotMatrix._21, RotMatrix._22, 0.f)
+			) };
+		f3Rotated.x = RotVector.x;
+		f3Rotated.y = RotVector.y;
 		f3Camera.x = f3Rotated.x;
 		f3Camera.y = f3Rotated.y;
 	}

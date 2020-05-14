@@ -13,7 +13,6 @@
 #include <malloc.h>
 #include <memory.h>
 #include <tchar.h>
-#include <math.h>
 // for Direct3D
 #include <DirectXMath.h> 
 #include <DirectXPackedVector.h> 
