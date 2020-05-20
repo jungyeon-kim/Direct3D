@@ -56,4 +56,7 @@ public:
 	void Rotate(float fPitch = 0.0f, float fYaw = 0.0f, float fRoll = 0.0f); 
 	//카메라의 이동, 회전에 따라 카메라의 정보를 갱신하는 가상함수이다. 
 	void Update(class CPlayer* pPlayer, XMFLOAT3& xmf3LookAt, float fTimeElapsed = 0.016f); 
+
+public:
+	void SetPosition(XMFLOAT3 newPosition) { m_xmf3Position.x = newPosition.x; m_xmf3Position.y = newPosition.y; m_xmf3Position.z = newPosition.z; }
 };

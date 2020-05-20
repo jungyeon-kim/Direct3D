@@ -70,6 +70,13 @@ public:
 	virtual ~CCubeMesh();
 };
 
+class CMapMesh : public CMesh
+{
+public:
+	CMapMesh(float fWidth = 4.0f, float fHeight = 4.0f, float fDepth = 4.0f);
+	virtual ~CMapMesh();
+};
+
 class CAirplaneMesh : public CMesh
 {
 public:

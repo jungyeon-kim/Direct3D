@@ -66,7 +66,7 @@ void CGameFramework::BuildObjects()
 {
 	CCamera* pCamera = new CCamera(); 
 	pCamera->SetViewport(0, 0, FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT); 
-	pCamera->GeneratePerspectiveProjectionMatrix(1.01f, 500.0f, 60.0f); 
+	pCamera->GeneratePerspectiveProjectionMatrix(1.01f, 200.0f, 60.0f); 
 	pCamera->SetFOVAngle(60.0f);
 
 	//비행기 메쉬를 생성하고 플레이어 객체에 연결한다. 
@@ -76,6 +76,7 @@ void CGameFramework::BuildObjects()
 	m_pPlayer->SetMesh(pAirplaneMesh); 
 	m_pPlayer->SetColor(RGB(0, 0, 255)); 
 	m_pPlayer->SetCamera(pCamera); 
+	m_pPlayer->SetPlayerBox();
 
 	//카메라는 플레이어 객체 뒤쪽 위에서 플레이어를 바라본다. 
 	m_pPlayer->SetCameraOffset(XMFLOAT3(0.0f, 5.0f, -15.0f));
@@ -127,6 +128,7 @@ void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPA
 		case VK_RETURN: 
 		break; 
 		case VK_CONTROL: 
+			m_pPlayer->Shot();
 		break; 
 		default: 
 			if (m_pScene) m_pScene->OnProcessingKeyboardMessage(hWnd, nMessageID, wParam, lParam); 
@@ -210,20 +212,32 @@ void CGameFramework::AnimateObjects()
 
 	if (m_pPlayer) m_pPlayer->Animate(fTimeElapsed); 
 	if (m_pScene) m_pScene->Animate(fTimeElapsed);
+	if (m_pPlayer)
+		for (int i = 0; i < m_pPlayer->GetNumOfBullet(); ++i)
+			m_pPlayer->GetBullet(i)->Animate(fTimeElapsed);
 }
 
 void CGameFramework::FrameAdvance()
 {
 	//타이머의 시간이 갱신되도록 하고 프레임 레이트를 계산한다. Tick(0.0f)과 비교해보라. 
 	m_GameTimer.Tick(60.0f);
-	ProcessInput(); AnimateObjects();
+	ProcessInput(); 
+	AnimateObjects();
 	ClearFrameBuffer(RGB(75, 45, 105));
 	CCamera* pCamera = m_pPlayer->GetCamera();
 	if (m_pScene) m_pScene->Render(m_hDCFrameBuffer, pCamera);
 	//플레이어(비행기)를 렌더링한다. 
 	if (m_pPlayer) m_pPlayer->Render(m_hDCFrameBuffer, pCamera);
+	//플레이어의 총알을 렌더링한다.
+	if (m_pPlayer)
+		for (int i = 0; i < m_pPlayer->GetNumOfBullet(); ++i)
+			m_pPlayer->GetBullet(i)->Render(m_hDCFrameBuffer, pCamera);
+
 	PresentFrameBuffer();
 	//현재 프레임 레이트를 윈도우 캡션(타이틀 바)에 출력한다. 
 	m_GameTimer.GetFrameRate(m_pszFrameRate + 12, 37);
 	::SetWindowText(m_hWnd, m_pszFrameRate);
+
+	// 충돌처리
+	m_pScene->ProcessCollision();
 }

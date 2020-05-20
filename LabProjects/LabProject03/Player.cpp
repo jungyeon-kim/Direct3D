@@ -141,6 +141,33 @@ void CPlayer::Animate(float fElapsedTime)
 	CGameObject::Animate(fElapsedTime);
 }
 
+void CPlayer::Shot()
+{
+	static CCubeMesh* pCubeMesh = new CCubeMesh(1.0f, 1.0f, 1.0f);
+
+	bullets.emplace_back();
+	bullets.back() = new CGameObject();
+	bullets.back()->SetMesh(pCubeMesh);
+	bullets.back()->SetColor(RGB(255, 0, 0));
+	bullets.back()->SetPosition(m_xmf3Position);
+	bullets.back()->SetMovingDirection(m_xmf3Look);
+	bullets.back()->SetMovingSpeed(100.0f);
+
+	static XMVECTOR min = XMVectorSet(-0.5f, -0.5f, -0.5f, 1.0f);
+	static XMVECTOR max = XMVectorSet(+0.5f, +0.5f, +0.5f, 1.0f);
+
+	bulletBoxes.emplace_back();
+	BoundingBox::CreateFromPoints(bulletBoxes.back(), min, max);
+}
+
+void CPlayer::SetPlayerBox()
+{
+	static XMVECTOR min = XMVectorSet(-2.0f, -2.0f, -2.0f, 1.0f);
+	static XMVECTOR max = XMVectorSet(+2.0f, +2.0f, +2.0f, 1.0f);
+
+	BoundingBox::CreateFromPoints(playerBox, min, max);
+}
+
 /*플레이어의 위치와 회전축으로부터 월드 변환 행렬을 생성하는 함수이다. 
 플레이어의 Right 벡터가 월 드 변환 행렬의 첫 번째 행 벡터, Up 벡터가 두 번째 행 벡터, Look 벡터가 세 번째 행 벡터, 
 플레이어 의 위치 벡터가 네 번째 행 벡터가 된다.*/ 

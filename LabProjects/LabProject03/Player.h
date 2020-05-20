@@ -6,7 +6,7 @@
 class CPlayer : public CGameObject 
 {
 public: 
-	CPlayer() { } 
+	CPlayer() { }
 	virtual ~CPlayer() { if (m_pCamera) delete m_pCamera; }
 public: 
 	//플레이어의 위치 벡터, x-축(Right), y-축(Up), z-축(Look) 벡터이다. 
@@ -43,6 +43,19 @@ public:
 	virtual void Animate(float fElapsedTime);
 	void SetCamera(CCamera* pCamera) { m_pCamera = pCamera; }
 	CCamera* GetCamera() { return(m_pCamera); }
+
+private:
+	BoundingBox playerBox{};
+	std::vector<CGameObject*> bullets{};
+	std::vector<BoundingBox> bulletBoxes{};
+public:
+	void Shot();
+	void ReleaseBullet(int index) { bullets.erase(std::remove(bullets.begin(), bullets.end(), bullets[index]), bullets.end()); }
+	size_t GetNumOfBullet() const { return bullets.size(); }
+	CGameObject* GetBullet(int index) { return bullets[index]; }
+	BoundingBox& GetPlayerBox() { return playerBox; }
+	BoundingBox& GetBulletBox(int index) { return bulletBoxes[index]; }
+	void SetPlayerBox();
 };
 
 class CAirplanePlayer : public CPlayer 
