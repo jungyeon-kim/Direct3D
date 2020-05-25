@@ -191,6 +191,36 @@ void CGameFramework::ProcessInput()
 		//마우스 버튼이 눌린 상태에서 마우스가 움직인 양을 구한다. 
 		float cxMouseDelta = (float)(ptCursorPos.x - m_ptOldCursorPos.x) / 3.0f;
 		float cyMouseDelta = (float)(ptCursorPos.y - m_ptOldCursorPos.y) / 3.0f;
+
+		// 피킹 -> 클릭좌표를 월드좌표계까지 변환한 뒤 수행
+		POINT PickingPos{ ptCursorPos };
+
+		if (pKeyBuffer[VK_RBUTTON] & 0xF0) 
+		{
+			ScreenToClient(m_hWnd, &PickingPos);
+
+			CViewport& viewport{ m_pPlayer->GetCamera()->m_Viewport };
+			CCamera& camera{ *m_pPlayer->GetCamera() };
+
+			// 스크린 좌표계 -> 투영 좌표계
+			XMFLOAT2 projPos{ 2.0f * PickingPos.x / (float)viewport.m_nWidth - 1.0f,
+				-2.0f * PickingPos.y / (float)viewport.m_nHeight + 1.0f };
+			
+			// 투영 좌표계 -> 카메라 좌표계
+			XMFLOAT3 camPos{ projPos.x / camera.m_xmf4x4Project._11, projPos.y / camera.m_xmf4x4Project._22, 1.0f };
+
+			XMFLOAT4X4 worldMatrix{}; // 월드변환 행렬
+			XMStoreFloat4x4(&worldMatrix, XMMatrixInverse(nullptr, XMLoadFloat4x4(&camera.m_xmf4x4View)));
+
+			// 카메라 좌표계 -> 월드 좌표계
+			XMFLOAT3 rayDir{ camPos.x, camPos.y, camPos.z }, rayOrigin{};	// 광선 방향과 시작점
+			XMStoreFloat3(&rayOrigin, XMVector3TransformCoord(XMLoadFloat3(&rayOrigin), XMLoadFloat4x4(&worldMatrix)));
+			XMStoreFloat3(&rayDir, XMVector3TransformNormal(XMLoadFloat3(&rayDir), XMLoadFloat4x4(&worldMatrix)));
+
+			int idx{ m_pScene->CheckPicking(rayOrigin, rayDir) };
+			if (idx != -1) m_pPlayer->SetPickedObject(m_pScene->GetGameObject(idx));
+		}
+
 		//마우스 커서의 위치를 마우스가 눌려졌던 위치로 설정한다. 
 		::SetCursorPos(m_ptOldCursorPos.x, m_ptOldCursorPos.y);
 		if (cxMouseDelta || cyMouseDelta)
@@ -223,7 +253,7 @@ void CGameFramework::FrameAdvance()
 	m_GameTimer.Tick(60.0f);
 	ProcessInput(); 
 	AnimateObjects();
-	ClearFrameBuffer(RGB(75, 45, 105));
+	ClearFrameBuffer(RGB(255, 255, 255));
 	CCamera* pCamera = m_pPlayer->GetCamera();
 	if (m_pScene) m_pScene->Render(m_hDCFrameBuffer, pCamera);
 	//플레이어(비행기)를 렌더링한다. 

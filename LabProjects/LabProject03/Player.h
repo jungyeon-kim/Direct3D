@@ -48,6 +48,7 @@ private:
 	BoundingBox playerBox{};
 	std::vector<CGameObject*> bullets{};
 	std::vector<BoundingBox> bulletBoxes{};
+	CGameObject *pickingTarget{}, *guidedBullet{}, *shotTarget{};
 public:
 	void Shot();
 	void ReleaseBullet(int index) { bullets.erase(std::remove(bullets.begin(), bullets.end(), bullets[index]), bullets.end()); }
@@ -56,6 +57,7 @@ public:
 	BoundingBox& GetPlayerBox() { return playerBox; }
 	BoundingBox& GetBulletBox(int index) { return bulletBoxes[index]; }
 	void SetPlayerBox();
+	void SetPickedObject(CGameObject* target);
 };
 
 class CAirplanePlayer : public CPlayer 

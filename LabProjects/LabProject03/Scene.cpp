@@ -51,7 +51,7 @@ void CScene::BuildObjects()
 	m_ppObjects[3]->SetRotationSpeed(40.6f); 
 	m_ppObjects[3]->SetMovingDirection(XMFLOAT3(0.0f, 0.0f, 1.0f)); 
 	m_ppObjects[3]->SetMovingSpeed(3.5f);
-
+	
 	m_ppObjects[4] = new CGameObject(); 
 	m_ppObjects[4]->SetMesh(pCubeMesh); 
 	m_ppObjects[4]->SetColor(RGB(128, 0, 255)); 
@@ -133,9 +133,10 @@ void CScene::ProcessCollision()
 				leftBox.Transform(leftBox, XMLoadFloat4x4(&m_ppObjects[i]->m_xmf4x4World));
 				rightBox.Transform(rightBox, XMLoadFloat4x4(&m_pPlayer->GetBullet(j)->m_xmf4x4World));
 
-				if (IsCollided(leftBox, rightBox))
+				if (IsCollided(leftBox, rightBox) && m_ppObjects[i]->m_bActive)
 				{
 					m_ppObjects[i]->SetMesh(new CMesh{});
+					m_ppObjects[i]->m_bActive = false;
 					m_pPlayer->ReleaseBullet(j);
 
 					// 파티클 생성
@@ -161,6 +162,8 @@ void CScene::ProcessCollision()
 			if (timer[i] > 100)
 			{
 				m_ppObjects[i]->SetMesh(new CCubeMesh{ 4.0f, 4.0f, 4.0f });
+				m_ppObjects[i]->m_bActive = true;
+				m_ppObjects[i]->isPicked = false;
 				particles[i].clear();
 				timer[i] = 0;
 			}
@@ -214,4 +217,34 @@ void CScene::ProcessCollision()
 				}
 			}
 	}
+}
+
+int CScene::CheckPicking(XMFLOAT3& rayOrigin, XMFLOAT3& rayDir)
+{
+	int cnt{ -1 };
+
+	for (int i = 0; i < nObjects; ++i) 
+	{
+		float dist{};
+		BoundingBox box{ objectBox[i] };
+
+		box.Transform(box, XMLoadFloat4x4(&m_ppObjects[i]->m_xmf4x4World));
+
+		// 해당 큐브가 피킹되지않았고 rayOrigin과 rayDir을 가지는 직선과 교차한다면
+		if (!m_ppObjects[i]->isPicked &&
+			box.Intersects(XMLoadFloat3(&rayOrigin), XMVector4Normalize(XMLoadFloat3(&rayDir)), dist))
+		{
+			// 광선과 교차하는 큐브가 2개이상일 때
+			if (cnt != -1) 
+			{
+				float lastObjZ{ m_ppObjects[cnt]->m_xmf4x4World._43 };
+				float currObjZ{ m_ppObjects[i]->m_xmf4x4World._43 };
+				cnt = lastObjZ - rayOrigin.z > currObjZ - rayOrigin.z ? i : cnt;
+				continue;
+			}
+			cnt = i;
+			m_ppObjects[cnt]->isPicked = true;
+		}
+	}
+	return cnt;
 }

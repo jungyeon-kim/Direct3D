@@ -28,4 +28,8 @@ private:
 public:
 	bool IsCollided(const BoundingBox& left, const BoundingBox& right);
 	void ProcessCollision();
+
+	int CheckPicking(XMFLOAT3& rayOrigin, XMFLOAT3& rayDir);
+
+	CGameObject* GetGameObject(int idx) const { return m_ppObjects[idx]; }
 };

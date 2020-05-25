@@ -39,4 +39,7 @@ public:
 	virtual void OnUpdateTransform() { } 
 	virtual void Animate(float fElapsedTime); 
 	virtual void Render(HDC hDCFrameBuffer, class CCamera* pCamera);
+
+public:
+	bool isPicked{};
 };

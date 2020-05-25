@@ -134,11 +134,42 @@ void CPlayer::Update(float fTimeElapsed)
 	XMStoreFloat3(&m_xmf3Velocity, XMVectorAdd(xmvVelocity, XMVectorScale(xmvDeceleration, fDeceleration)));
 }
 
+/*플레이어의 위치와 회전축으로부터 월드 변환 행렬을 생성하는 함수이다.
+플레이어의 Right 벡터가 월 드 변환 행렬의 첫 번째 행 벡터, Up 벡터가 두 번째 행 벡터, Look 벡터가 세 번째 행 벡터,
+플레이어 의 위치 벡터가 네 번째 행 벡터가 된다.*/
+void CPlayer::OnUpdateTransform()
+{
+	m_xmf4x4World._11 = m_xmf3Right.x; m_xmf4x4World._12 = m_xmf3Right.y; m_xmf4x4World._13 = m_xmf3Right.z;
+	m_xmf4x4World._21 = m_xmf3Up.x; m_xmf4x4World._22 = m_xmf3Up.y; m_xmf4x4World._23 = m_xmf3Up.z;
+	m_xmf4x4World._31 = m_xmf3Look.x; m_xmf4x4World._32 = m_xmf3Look.y; m_xmf4x4World._33 = m_xmf3Look.z;
+	m_xmf4x4World._41 = m_xmf3Position.x; m_xmf4x4World._42 = m_xmf3Position.y; m_xmf4x4World._43 = m_xmf3Position.z;
+}
+
 void CPlayer::Animate(float fElapsedTime) 
 { 
 	//플레이어의 위치과 방향 벡터로 부터 따라 월드 변환 행렬을 구한다. 
 	OnUpdateTransform();
 	CGameObject::Animate(fElapsedTime);
+
+	if (guidedBullet)
+	{
+		static float timer{};
+
+		++timer;
+		if (timer > 20)
+		{
+			XMFLOAT3 targetPos{ shotTarget->m_xmf4x4World._41,
+				shotTarget->m_xmf4x4World._42, shotTarget->m_xmf4x4World._43 };
+			XMFLOAT3 bulletPos{ guidedBullet->m_xmf4x4World._41,
+				guidedBullet->m_xmf4x4World._42, guidedBullet->m_xmf4x4World._43 };
+
+			XMStoreFloat3(&guidedBullet->m_xmf3MovingDirection, XMVector3Normalize(XMVectorSubtract(
+				XMLoadFloat3(&targetPos), XMLoadFloat3(&bulletPos))));
+
+			guidedBullet = nullptr;
+			timer = 0;
+		}
+	}
 }
 
 void CPlayer::Shot()
@@ -152,6 +183,15 @@ void CPlayer::Shot()
 	bullets.back()->SetPosition(m_xmf3Position);
 	bullets.back()->SetMovingDirection(m_xmf3Look);
 	bullets.back()->SetMovingSpeed(100.0f);
+	bullets.back()->SetRotationAxis(XMFLOAT3{ 1.0f, 1.0f, 1.0f });
+	bullets.back()->SetRotationSpeed(10.0f);
+	if (pickingTarget)
+	{
+		guidedBullet = bullets.back();
+		guidedBullet->SetColor(RGB(0, 0, 255));
+		shotTarget = pickingTarget;
+		pickingTarget = nullptr;
+	}
 
 	static XMVECTOR min = XMVectorSet(-0.5f, -0.5f, -0.5f, 1.0f);
 	static XMVECTOR max = XMVectorSet(+0.5f, +0.5f, +0.5f, 1.0f);
@@ -168,15 +208,9 @@ void CPlayer::SetPlayerBox()
 	BoundingBox::CreateFromPoints(playerBox, min, max);
 }
 
-/*플레이어의 위치와 회전축으로부터 월드 변환 행렬을 생성하는 함수이다. 
-플레이어의 Right 벡터가 월 드 변환 행렬의 첫 번째 행 벡터, Up 벡터가 두 번째 행 벡터, Look 벡터가 세 번째 행 벡터, 
-플레이어 의 위치 벡터가 네 번째 행 벡터가 된다.*/ 
-void CPlayer::OnUpdateTransform() 
-{ 
-	m_xmf4x4World._11 = m_xmf3Right.x; m_xmf4x4World._12 = m_xmf3Right.y; m_xmf4x4World._13 = m_xmf3Right.z; 
-	m_xmf4x4World._21 = m_xmf3Up.x; m_xmf4x4World._22 = m_xmf3Up.y; m_xmf4x4World._23 = m_xmf3Up.z; 
-	m_xmf4x4World._31 = m_xmf3Look.x; m_xmf4x4World._32 = m_xmf3Look.y; m_xmf4x4World._33 = m_xmf3Look.z; 
-	m_xmf4x4World._41 = m_xmf3Position.x; m_xmf4x4World._42 = m_xmf3Position.y; m_xmf4x4World._43 = m_xmf3Position.z; 
+void CPlayer::SetPickedObject(CGameObject* target)
+{
+	pickingTarget = target;
 }
 
 CAirplanePlayer::CAirplanePlayer()
