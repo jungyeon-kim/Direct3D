@@ -1,70 +1,41 @@
-// stdafx.h : ÀÚÁÖ »ç¿ëÇÏÁö¸¸ ÀÚÁÖ º¯°æµÇÁö´Â ¾Ê´Â
-// Ç¥ÁØ ½Ã½ºÅÛ Æ÷ÇÔ ÆÄÀÏ ¹× ÇÁ·ÎÁ§Æ® °ü·Ã Æ÷ÇÔ ÆÄÀÏÀÌ
-// µé¾î ÀÖ´Â Æ÷ÇÔ ÆÄÀÏÀÔ´Ï´Ù.
+ï»¿// header.h: í‘œì¤€ ì‹œìŠ¤í…œ í¬í•¨ íŒŒì¼
+// ë˜ëŠ” í”„ë¡œì íŠ¸ íŠ¹ì • í¬í•¨ íŒŒì¼ì´ ë“¤ì–´ ìˆëŠ” í¬í•¨ íŒŒì¼ì…ë‹ˆë‹¤.
 //
 
 #pragma once
 
-#ifdef UNICODE
-#pragma comment(linker, "/entry:wWinMainCRTStartup /subsystem:console")
-#else
-#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")
-#endif
-
-#define WIN32_LEAN_AND_MEAN		// °ÅÀÇ »ç¿ëµÇÁö ¾Ê´Â ³»¿ëÀº Windows Çì´õ¿¡¼­ Á¦¿ÜÇÕ´Ï´Ù.
-// Windows Çì´õ ÆÄÀÏ:
+#include "targetver.h"
+#define WIN32_LEAN_AND_MEAN             // ê±°ì˜ ì‚¬ìš©ë˜ì§€ ì•ŠëŠ” ë‚´ìš©ì„ Windows í—¤ë”ì—ì„œ ì œì™¸í•©ë‹ˆë‹¤.
+// Windows í—¤ë” íŒŒì¼
 #include <windows.h>
-
-// CÀÇ ·±Å¸ÀÓ Çì´õ ÆÄÀÏÀÔ´Ï´Ù.
-#include <iostream>
-#include <array>
-#include <vector>
-#include <iterator>
-#include <algorithm>
+#include <mmsystem.h>
+// C ëŸ°íƒ€ì„ í—¤ë” íŒŒì¼ì…ë‹ˆë‹¤.
 #include <stdlib.h>
 #include <malloc.h>
 #include <memory.h>
 #include <tchar.h>
-#include <math.h>
-
-#include <Mmsystem.h>
-#pragma comment(lib, "winmm.lib")
-
+#include <string>
 // for Direct3D
-#include <DirectXMath.h> 
-#include <DirectXPackedVector.h> 
-#include <DirectXColors.h> 
+#include <wrl.h>
+#include <shellapi.h>
+#include <d3d12.h>
+#include <dxgi1_4.h>
+#include <D3Dcompiler.h>
+#include <DirectXMath.h>
+#include <DirectXPackedVector.h>
+#include <DirectXColors.h>
 #include <DirectXCollision.h>
-using namespace DirectX; 
+#include <DXGIDebug.h>
+// Add Library
+#pragma comment(lib, "winmm.lib")
+#pragma comment(lib, "d3dcompiler.lib")
+#pragma comment(lib, "d3d12.lib")
+#pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "dxguid.lib")
+// Window size
+#define FRAME_BUFFER_WIDTH 800
+#define FRAME_BUFFER_HEIGHT 600
+
+using namespace DirectX;
 using namespace DirectX::PackedVector;
-
-#define DIR_FORWARD 0x01 
-#define DIR_BACKWARD 0x02 
-#define DIR_LEFT 0x04 
-#define DIR_RIGHT 0x08 
-#define DIR_UP 0x10 
-#define DIR_DOWN 0x20
-
-#define FRAMEBUFFER_WIDTH		640
-#define FRAMEBUFFER_HEIGHT		480
-
-#define RANDOM_COLOR			(0xFF000000 | ((rand() * 0xFFFFFF) / RAND_MAX))
-
-#define DegreeToRadian(x)		float((x)*3.141592654f/180.0f)
-
-#define EPSILON					1.0e-2f
-
-inline bool IsZero(float fValue) { return((fabsf(fValue) <= EPSILON)); }
-inline bool IsEqual(float fA, float fB) { return(::IsZero(fA - fB)); }
-
-// TODO: ÇÁ·Î±×·¥¿¡ ÇÊ¿äÇÑ Ãß°¡ Çì´õ´Â ¿©±â¿¡¼­ ÂüÁ¶ÇÕ´Ï´Ù.
-
-namespace Matrix4x4 
-{
-	inline XMFLOAT4X4 Identity() 
-	{ 
-		XMFLOAT4X4 xmmtx4x4Result; 
-		XMStoreFloat4x4(&xmmtx4x4Result, XMMatrixIdentity()); 
-		return(xmmtx4x4Result); 
-	}
-}
+using Microsoft::WRL::ComPtr;
