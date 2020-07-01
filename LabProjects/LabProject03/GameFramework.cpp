@@ -458,12 +458,13 @@ void CGameFramework::FrameAdvance()
 
 	/* 스왑체인을 프리젠트
 	프리젠트를 하면 현재 렌더 타겟(후면버퍼)의 내용이 전면버퍼로 옮겨지고 렌더 타겟 인덱스가 바뀜 */
-	DXGI_PRESENT_PARAMETERS dxgiPresentParameters;
-	dxgiPresentParameters.DirtyRectsCount = 0;
-	dxgiPresentParameters.pDirtyRects = NULL;
-	dxgiPresentParameters.pScrollRect = NULL;
-	dxgiPresentParameters.pScrollOffset = NULL;
-	m_pdxgiSwapChain->Present1(1, 0, &dxgiPresentParameters);
+	m_pdxgiSwapChain->Present(0, 0);
+	//DXGI_PRESENT_PARAMETERS dxgiPresentParameters;
+	//dxgiPresentParameters.DirtyRectsCount = 0;
+	//dxgiPresentParameters.pDirtyRects = NULL;
+	//dxgiPresentParameters.pScrollRect = NULL;
+	//dxgiPresentParameters.pScrollOffset = NULL;
+	//m_pdxgiSwapChain->Present1(1, 0, &dxgiPresentParameters);
 
 	m_nSwapChainBufferIndex = m_pdxgiSwapChain->GetCurrentBackBufferIndex();
 

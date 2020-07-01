@@ -34,15 +34,8 @@ public:
 
 class CMesh
 {
-public:
-	CMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
-	virtual ~CMesh();
 private:
 	int m_nReferences{};
-public:
-	void AddRef() { ++m_nReferences; }
-	void Release() { if (--m_nReferences <= 0) delete this; }
-	void ReleaseUploadBuffers();
 protected:
 	ID3D12Resource* m_pd3dVertexBuffer{};
 	ID3D12Resource* m_pd3dVertexUploadBuffer{};
@@ -52,7 +45,27 @@ protected:
 	UINT m_nVertices{};
 	UINT m_nStride{};
 	UINT m_nOffset{};
+
+protected:
+	/*인덱스 버퍼(인덱스의 배열)와 인덱스 버퍼를 위한 업로드 버퍼에 대한 인터페이스 포인터이다. 인덱스 버퍼는 정점
+	버퍼(배열)에 대한 인덱스를 가진다.*/
+	ID3D12Resource* m_pd3dIndexBuffer{};
+	ID3D12Resource* m_pd3dIndexUploadBuffer{};
+	D3D12_INDEX_BUFFER_VIEW m_d3dIndexBufferView{};
+	//인덱스 버퍼에 포함되는 인덱스의 개수이다. 
+	UINT m_nIndices{};
+	//인덱스 버퍼에서 메쉬를 그리기 위해 사용되는 시작 인덱스이다. 
+	UINT m_nStartIndex{};
+	//인덱스 버퍼의 인덱스에 더해질 인덱스이다
+	int m_nBaseVertex{};
 public:
+	CMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
+	virtual ~CMesh();
+
+	void AddRef() { ++m_nReferences; }
+	void Release() { if (--m_nReferences <= 0) delete this; }
+	void ReleaseUploadBuffers();
+
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList);
 };
 
@@ -70,4 +83,13 @@ public:
 	CCubeMeshDiffused(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, 
 		float fWidth = 2.0f, float fHeight = 2.0f, float fDepth = 2.0f);
 	virtual ~CCubeMeshDiffused() = default;
+};
+
+class CAirplaneMeshDiffused : public CMesh
+{
+public:
+	CAirplaneMeshDiffused(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList
+		* pd3dCommandList, float fWidth = 20.0f, float fHeight = 20.0f, float fDepth = 4.0f,
+		XMFLOAT4 xmf4Color = XMFLOAT4(1.0f, 1.0f, 0.0f, 0.0f));
+	virtual ~CAirplaneMeshDiffused();
 };

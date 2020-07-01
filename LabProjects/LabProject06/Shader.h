@@ -1,5 +1,3 @@
-#include "..\LabProject07\Shader.h"
-#include "..\LabProject07\Shader.h"
 #pragma once
 
 class CGameObject;
