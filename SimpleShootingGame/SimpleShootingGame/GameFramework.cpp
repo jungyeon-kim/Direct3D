@@ -365,6 +365,17 @@ void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPA
 		case VK_F3:
 			if (m_pPlayer) m_pCamera = m_pPlayer->ChangeCamera((wParam - VK_F1 + 1), m_GameTimer.GetTimeElapsed());
 			break;
+		case VK_CONTROL:
+		{
+			static CAirplanePlayer* AirPlayer{ dynamic_cast<CAirplanePlayer*>(m_pPlayer) };
+
+			if (AirPlayer)
+			{
+				m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
+				AirPlayer->Shot(m_pd3dDevice, m_pd3dCommandList);
+			}
+			break;
+		}
 		default:
 			break;
 		}
@@ -500,7 +511,7 @@ void CGameFramework::WaitForGpuComplete()
 void CGameFramework::FrameAdvance()
 {
 	//타이머의 시간이 갱신되도록 하고 프레임 레이트를 계산한다. 
-	m_GameTimer.Tick(0.0f);
+	m_GameTimer.Tick(60.0f);
 
 	ProcessInput();
 	AnimateObjects();

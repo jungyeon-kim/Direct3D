@@ -10,6 +10,7 @@
 #include "GameObject.h"
 
 class CCamera;
+class CBulletsShader;
 
 class CPlayer : public CGameObject
 {
@@ -39,6 +40,9 @@ protected:
 	LPVOID m_pPlayerUpdatedContext{};
 	//카메라의 위치가 바뀔 때마다 호출되는 OnCameraUpdateCallback() 함수에서 사용하는 데이터이다. 
 	LPVOID m_pCameraUpdatedContext{};
+
+	//플레이어의 총알에 대한 셰이더이다.
+	CBulletsShader* BulletShader{};
 
 	//플레이어에 현재 설정된 카메라이다. 
 	CCamera *m_pCamera{};
@@ -112,4 +116,6 @@ public:
 
 	virtual CCamera* ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed);
 	virtual void OnPrepareRender();
+
+	void Shot(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
 };

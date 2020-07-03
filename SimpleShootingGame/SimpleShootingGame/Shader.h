@@ -1,6 +1,7 @@
 #pragma once
 
 class CGameObject;
+class CBaseObject;
 class CCamera;
 
 //게임 객체의 정보를 셰이더에게 넘겨주기 위한 구조체(상수 버퍼)이다. 
@@ -85,4 +86,31 @@ public:
     //셰이더에 포함되어 있는 모든 게임 객체들에 대한 마우스 픽킹을 수행한다. 
     virtual CGameObject *PickObjectByRayIntersection(XMFLOAT3& xmf3PickPosition,
     XMFLOAT4X4& xmf4x4View, float* pfNearHitDistance);
+};
+
+//총알 객체들을 포함하는 셰이더 객체이다. 
+class CBulletsShader : public CShader
+{
+protected:
+    std::vector<std::unique_ptr<CBaseObject>> Bullets{};
+public:
+    CBulletsShader();
+    virtual ~CBulletsShader();
+
+    virtual void BuildObjects(XMFLOAT3& xmf3Position, XMFLOAT3& xmf3Look, ID3D12Device* pd3dDevice, 
+        ID3D12GraphicsCommandList* pd3dCommandList);
+    virtual void AnimateObjects(float fTimeElapsed);
+    virtual void ReleaseObjects();
+
+    virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
+    virtual D3D12_SHADER_BYTECODE CreateVertexShader(ID3DBlob** ppd3dShaderBlob);
+    virtual D3D12_SHADER_BYTECODE CreatePixelShader(ID3DBlob** ppd3dShaderBlob);
+    virtual void CreateShader(ID3D12Device* pd3dDevice, ID3D12RootSignature* pd3dGraphicsRootSignature);
+
+    virtual void ReleaseUploadBuffers();
+
+    virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);
+
+    void ReleaseBullet(int Idx);
+    const std::vector<std::unique_ptr<CBaseObject>>& GetBullets() const { return Bullets; }
 };

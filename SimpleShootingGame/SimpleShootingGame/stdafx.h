@@ -22,6 +22,9 @@
 #include <tchar.h>
 #include <iostream>
 #include <string>
+#include <vector>
+#include <memory>
+#include <algorithm>
 // for Direct3D
 #include <wrl.h>
 #include <shellapi.h>

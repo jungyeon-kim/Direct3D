@@ -97,6 +97,14 @@ public:
 	virtual ~CCubeMeshDiffused() = default;
 };
 
+class CSphereMeshDiffused : public CMesh
+{
+public:
+	CSphereMeshDiffused(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList,
+		float fRadius = 2.0f, int nSlices = 20, int nStacks = 20);
+	virtual ~CSphereMeshDiffused();
+};
+
 class CAirplaneMeshDiffused : public CMesh
 {
 public:
@@ -104,12 +112,4 @@ public:
 		* pd3dCommandList, float fWidth = 20.0f, float fHeight = 20.0f, float fDepth = 4.0f,
 		XMFLOAT4 xmf4Color = XMFLOAT4(1.0f, 1.0f, 0.0f, 0.0f));
 	virtual ~CAirplaneMeshDiffused();
-};
-
-class CSphereMeshDiffused : public CMesh
-{
-public:
-	CSphereMeshDiffused(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, 
-		float fRadius = 2.0f, int nSlices = 20, int nStacks = 20);
-	virtual ~CSphereMeshDiffused();
 };
