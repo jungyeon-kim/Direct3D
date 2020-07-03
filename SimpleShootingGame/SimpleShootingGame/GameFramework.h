@@ -108,6 +108,8 @@ public:
 
 	// 荤侩磊 涝仿 备己
 	void ProcessInput();
+	// 面倒贸府 备己
+	void ProcessCollision();
 	// 乔欧等 按眉 备己
 	void ProcessSelectedObject(DWORD dwDirection, float cxDelta, float cyDelta);
 	// 局聪皋捞记 备己

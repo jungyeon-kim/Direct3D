@@ -300,6 +300,9 @@ void CGameFramework::BuildObjects()
 	m_pPlayer = pAirplanePlayer;
 	m_pCamera = m_pPlayer->GetCamera();
 
+	//씬에 플레이어를 등록한다.
+	m_pScene->SetPlayer(m_pPlayer);
+
 	//씬 객체를 생성하기 위하여 필요한 그래픽 명령 리스트들을 명령 큐에 추가한다. 
 	m_pd3dCommandList->Close();
 	ID3D12CommandList* ppd3dCommandLists[]{ m_pd3dCommandList };
@@ -471,6 +474,11 @@ void CGameFramework::ProcessInput()
 	m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
 }
 
+void CGameFramework::ProcessCollision()
+{
+	if (m_pScene) m_pScene->ProcessCollision();
+}
+
 void CGameFramework::ProcessSelectedObject(DWORD dwDirection, float cxDelta, float cyDelta)
 {
 	//픽킹으로 선택한 게임 객체가 있으면 키보드를 누르거나 마우스를 움직이면 게임 개체를 이동 또는 회전한다. 
@@ -514,6 +522,7 @@ void CGameFramework::FrameAdvance()
 	m_GameTimer.Tick(60.0f);
 
 	ProcessInput();
+	ProcessCollision();
 	AnimateObjects();
 
 	// 명령 할당자와 명령 리스트를 리셋

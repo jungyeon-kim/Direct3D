@@ -5,6 +5,7 @@
 #include "Shader.h"
 #include "Mesh.h"
 #include "Camera.h"
+#include "Player.h"
 
 CScene::CScene()
 {
@@ -161,4 +162,46 @@ CGameObject* CScene::PickObjectPointedByCursor(int xClient, int yClient, CCamera
 	}
 
 	return pNearestObject;
+}
+
+void CScene::SetPlayer(CPlayer* NewPlayer)
+{
+	//플레이어를 참조한다.
+	Player = NewPlayer;
+	//플레이어의 불릿셰이더를 참조한다.
+	if (Player) BulletsShader = Player->GetBulletShader();
+}
+
+bool CScene::IsCollided(const BoundingOrientedBox& Lhs, const BoundingOrientedBox& Rhs)
+{
+	return Lhs.Contains(Rhs) != ContainmentType::DISJOINT;
+}
+
+void CScene::ProcessCollision()
+{
+	if (!m_pShaders || !BulletsShader) return;
+
+	static const auto Objects{ m_pShaders->GetObjects() };
+	static const auto& Bullets{ BulletsShader->GetBullets() };
+
+	// 큐브 & 총알 처리
+	for (int i = 0; i < m_pShaders->GetNumOfObjects(); ++i)
+	{
+		for (int j = 0; j < BulletsShader->GetNumOfBullets(); ++j)
+		{
+			BoundingOrientedBox LeftBox{ Objects[i]->GetBoundingBox() };
+			BoundingOrientedBox RightBox{ Bullets[j]->GetBoundingBox() };
+
+			LeftBox.Transform(LeftBox, XMLoadFloat4x4(&Objects[i]->GetWorldMatrix()));
+			RightBox.Transform(RightBox, XMLoadFloat4x4(&Bullets[j]->GetWorldMatrix()));
+
+			if (IsCollided(LeftBox, RightBox) && Objects[i]->GetVisible())
+			{
+				BulletsShader->ReleaseBullet(j);
+				Objects[i]->SetVisible(false);
+
+				//파티클 생성
+			}
+		}
+	}
 }

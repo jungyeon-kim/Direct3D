@@ -159,9 +159,9 @@ void CPlayer::Update(float fTimeElapsed)
 		BulletShader->AnimateObjects(fTimeElapsed);
 
 		//플레이어와 총알의 거리가 일정거리 벌어지면 총알을 제거한다.
-		const auto& Bullets{ BulletShader->GetBullets() };
+		static const auto& Bullets{ BulletShader->GetBullets() };
 
-		for (int i = 0; i < BulletShader->GetNumOfBullets();)
+		for (int i = 0; i < Bullets.size();)
 		{
 			if (Vector3::Distance(m_xmf3Position, Bullets[i]->GetPosition()) > 500.0f) BulletShader->ReleaseBullet(i);
 			else ++i;

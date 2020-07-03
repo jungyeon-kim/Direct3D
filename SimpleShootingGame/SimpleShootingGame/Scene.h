@@ -2,6 +2,8 @@
 
 class CGameObject;
 class CObjectsShader;
+class CPlayer;
+class CBulletsShader;
 
 class CScene
 {
@@ -9,6 +11,11 @@ protected:
     //배치(Batch) 처리를 하기 위하여 씬을 셰이더들의 리스트로 표현한다. 
     CObjectsShader* m_pShaders{};
     int m_nShaders{};
+
+    //프레임워크에서 생성한 플레이어를 참조하기위한 변수이다.
+    CPlayer* Player{};
+    //플레이어가 가지고있는 불릿셰이더를 참조하기위한 변수이다.
+    CBulletsShader* BulletsShader{};
 
     ID3D12RootSignature* m_pd3dGraphicsRootSignature{};
 public:
@@ -34,4 +41,10 @@ public:
 
     //씬의 모든 게임 객체들에 대한 마우스 픽킹을 수행한다. 
     CGameObject* PickObjectPointedByCursor(int xClient, int yClient, CCamera *pCamera);
+
+    void SetPlayer(CPlayer* NewPlayer);
+
+    //충돌처리를 수행한다.
+    bool IsCollided(const BoundingOrientedBox& Lhs, const BoundingOrientedBox& Rhs);
+    void ProcessCollision();
 };

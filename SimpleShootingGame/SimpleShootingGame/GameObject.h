@@ -45,6 +45,9 @@ public:
     XMFLOAT3 GetLook();
     XMFLOAT3 GetUp();
     XMFLOAT3 GetRight();
+
+    XMFLOAT4X4 GetWorldMatrix() const { return m_xmf4x4World; }
+
     //게임 객체의 위치를 설정한다. 
     void SetPosition(float x, float y, float z);
     void SetPosition(XMFLOAT3 xmf3Position);
@@ -56,6 +59,8 @@ public:
     //게임 객체를 회전(x-축, y-축, z-축)한다. 
     void Rotate(float fPitch = 10.0f, float fYaw = 10.0f, float fRoll = 10.0f);
     void Rotate(XMFLOAT3* pxmf3Axis, float fAngle);
+
+    BoundingOrientedBox GetBoundingBox() const;
 
     bool GetVisible() const { return IsVisible; }
     void SetVisible(bool Flag) { IsVisible = Flag; }
