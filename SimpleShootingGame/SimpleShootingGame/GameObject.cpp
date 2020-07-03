@@ -208,6 +208,9 @@ CBaseObject::~CBaseObject()
 
 void CBaseObject::Animate(float fTimeElapsed)
 {
-	CGameObject::Rotate(&m_xmf3RotationAxis, m_fRotationSpeed * fTimeElapsed);
-	CGameObject::Move(m_xmf3MovingDirection, m_fMovingSpeed);
+	if (IsVisible)
+	{
+		if (m_fRotationSpeed) CGameObject::Rotate(&m_xmf3RotationAxis, m_fRotationSpeed * fTimeElapsed);
+		if (m_fMovingSpeed) CGameObject::Move(m_xmf3MovingDirection, m_fMovingSpeed * fTimeElapsed);
+	}
 }

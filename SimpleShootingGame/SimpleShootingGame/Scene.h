@@ -2,8 +2,9 @@
 
 class CGameObject;
 class CObjectsShader;
-class CPlayer;
 class CBulletsShader;
+class CParticlesShader;
+class CPlayer;
 
 class CScene
 {
@@ -11,6 +12,10 @@ protected:
     //배치(Batch) 처리를 하기 위하여 씬을 셰이더들의 리스트로 표현한다. 
     CObjectsShader* m_pShaders{};
     int m_nShaders{};
+
+    //파티클에 대한 셰이더이다.
+    CParticlesShader* ParticlesShader{};
+    int NumOfParticles{};
 
     //프레임워크에서 생성한 플레이어를 참조하기위한 변수이다.
     CPlayer* Player{};

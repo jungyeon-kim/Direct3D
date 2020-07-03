@@ -118,3 +118,32 @@ public:
     const std::vector<std::unique_ptr<CBaseObject>>& GetBullets() const { return Bullets; }
     size_t GetNumOfBullets() const { return Bullets.size(); }
 };
+
+//파티클 객체들을 포함하는 셰이더 객체이다. 
+class CParticlesShader : public CShader
+{
+protected:
+    CGameObject** m_ppObjects{};
+    int m_nObjects{};
+
+    XMFLOAT3 Position{};
+public:
+    CParticlesShader();
+    virtual ~CParticlesShader();
+
+    virtual void BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
+    virtual void AnimateObjects(float fTimeElapsed);
+    virtual void ReleaseObjects();
+
+    virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
+    virtual D3D12_SHADER_BYTECODE CreateVertexShader(ID3DBlob** ppd3dShaderBlob);
+    virtual D3D12_SHADER_BYTECODE CreatePixelShader(ID3DBlob** ppd3dShaderBlob);
+    virtual void CreateShader(ID3D12Device* pd3dDevice, ID3D12RootSignature* pd3dGraphicsRootSignature);
+
+    virtual void ReleaseUploadBuffers();
+
+    virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);
+
+    void ExecuteParticle(const XMFLOAT3& NewPosition);
+    void StopParticle();
+};

@@ -20,11 +20,19 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	//그래픽 루트 시그니쳐를 생성한다. 
 	m_pd3dGraphicsRootSignature = CreateGraphicsRootSignature(pd3dDevice);
 
-	//게임 객체의 리스트는 셰이더가 갖고있다.
+	//오브젝트 셰이더를 생성한다.
 	m_nShaders = 1;
-	m_pShaders = new CObjectsShader[m_nShaders];
+	m_pShaders = new CObjectsShader[m_nShaders]{};
 	m_pShaders[0].CreateShader(pd3dDevice, m_pd3dGraphicsRootSignature);
 	m_pShaders[0].BuildObjects(pd3dDevice, pd3dCommandList);
+	//파티클 셰이더를 생성한다.
+	NumOfParticles = m_pShaders->GetNumOfObjects();
+	ParticlesShader = new CParticlesShader[NumOfParticles]{};
+	for (int i = 0; i < NumOfParticles; ++i)
+	{
+		ParticlesShader[i].CreateShader(pd3dDevice, m_pd3dGraphicsRootSignature);
+		ParticlesShader[i].BuildObjects(pd3dDevice, pd3dCommandList);
+	}
 }
 
 void CScene::ReleaseObjects()
@@ -37,6 +45,12 @@ void CScene::ReleaseObjects()
 		m_pShaders[i].ReleaseObjects();
 	}
 	if (m_pShaders) delete[] m_pShaders;
+
+	for (int i = 0; i < NumOfParticles; ++i)
+	{
+		ParticlesShader[i].ReleaseShaderVariables();
+		ParticlesShader[i].ReleaseObjects();
+	}
 }
 
 bool CScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam) 
@@ -57,6 +71,7 @@ bool CScene::ProcessInput(UCHAR* pKeysBuffer)
 void CScene::AnimateObjects(float fTimeElapsed) 
 { 
 	for (int i = 0; i < m_nShaders; i++) m_pShaders[i].AnimateObjects(fTimeElapsed);
+	for (int i = 0; i < NumOfParticles; ++i) ParticlesShader[i].AnimateObjects(fTimeElapsed);
 }
 
 void CScene::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
@@ -67,15 +82,14 @@ void CScene::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera
 	pCamera->UpdateShaderVariables(pd3dCommandList);
 
 	//씬을 렌더링하는 것은 씬을 구성하는 셰이더 객체(게임 객체를 포함하는 객체)들을 렌더링하는 것이다. 
-	for (int i = 0; i < m_nShaders; i++)
-	{
-		m_pShaders[i].Render(pd3dCommandList, pCamera);
-	}
+	for (int i = 0; i < m_nShaders; i++) m_pShaders[i].Render(pd3dCommandList, pCamera);
+	for (int i = 0; i < NumOfParticles; ++i) ParticlesShader[i].Render(pd3dCommandList, pCamera);
 }
 
 void CScene::ReleaseUploadBuffers()
 {
 	for (int i = 0; i < m_nShaders; i++) m_pShaders[i].ReleaseUploadBuffers();
+	for (int i = 0; i < NumOfParticles; ++i) ParticlesShader[i].ReleaseUploadBuffers();
 }
 
 ID3D12RootSignature* CScene::GetGraphicsRootSignature()
@@ -201,7 +215,18 @@ void CScene::ProcessCollision()
 				Objects[i]->SetVisible(false);
 
 				//파티클 생성
+				ParticlesShader[i].ExecuteParticle(Objects[i]->GetPosition());
 			}
+		}
+		// 파티클 제거
+		static int Timer[10]{};
+
+		if (!Objects[i]->GetVisible()) ++Timer[i];
+		if (Timer[i] > 100)
+		{
+			Objects[i]->SetVisible(true);
+			ParticlesShader[i].StopParticle();
+			Timer[i] = 0;
 		}
 	}
 }

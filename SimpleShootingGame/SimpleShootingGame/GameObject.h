@@ -8,11 +8,12 @@ class CGameObject
 {
 private:
     int m_nReferences{};
-    bool IsVisible{ true };
 protected:
     XMFLOAT4X4 m_xmf4x4World{ Matrix4x4::Identity() };
     CMesh* m_pMesh{};
     CShader* m_pShader{};
+
+    bool IsVisible{ true };
 public:
     CGameObject();
     virtual ~CGameObject();
@@ -78,7 +79,10 @@ public:
     CBaseObject();
     virtual ~CBaseObject();
 
-    void SetMovingDirection(const XMFLOAT3& xmf3MovingDirection) { m_xmf3MovingDirection = xmf3MovingDirection; }
+    void SetMovingDirection(const XMFLOAT3& xmf3MovingDirection) 
+    { 
+        XMStoreFloat3(&m_xmf3MovingDirection, XMVector3Normalize(XMLoadFloat3(&xmf3MovingDirection))); 
+    }
     void SetMovingSpeed(float fSpeed) { m_fMovingSpeed = fSpeed; }
     void SetRotationSpeed(float fRotationSpeed) { m_fRotationSpeed = fRotationSpeed; }
     void SetRotationAxis(XMFLOAT3 xmf3RotationAxis) { m_xmf3RotationAxis = xmf3RotationAxis; }
