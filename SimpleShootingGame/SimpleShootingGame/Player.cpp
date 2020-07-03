@@ -153,8 +153,20 @@ void CPlayer::Update(float fTimeElapsed)
 	if (fDeceleration > fLength) fDeceleration = fLength;
 	m_xmf3Velocity = Vector3::Add(m_xmf3Velocity, Vector3::ScalarProduct(m_xmf3Velocity, -fDeceleration, true));
 
-	//총알 객체를 애니메이션한다.
-	if (BulletShader) BulletShader->AnimateObjects(fTimeElapsed);
+	if (BulletShader)
+	{
+		//총알 객체를 애니메이션한다.
+		BulletShader->AnimateObjects(fTimeElapsed);
+
+		//플레이어와 총알의 거리가 일정거리 벌어지면 총알을 제거한다.
+		const auto& Bullets{ BulletShader->GetBullets() };
+
+		for (int i = 0; i < BulletShader->GetNumOfBullets();)
+		{
+			if (Vector3::Distance(m_xmf3Position, Bullets[i]->GetPosition()) > 500.0f) BulletShader->ReleaseBullet(i);
+			else ++i;
+		}
+	}
 }
 
 /*카메라를 변경할 때 ChangeCamera() 함수에서 호출되는 함수이다. nCurrentCameraMode는 현재 카메라의 모드

@@ -407,7 +407,7 @@ void CBulletsShader::CreateShader(ID3D12Device* pd3dDevice, ID3D12RootSignature*
 void CBulletsShader::BuildObjects(XMFLOAT3& xmf3Position, XMFLOAT3& xmf3Look, ID3D12Device* pd3dDevice, 
 	ID3D12GraphicsCommandList* pd3dCommandList)
 {
-	static CSphereMeshDiffused* pSphereMesh{ new CSphereMeshDiffused(pd3dDevice, pd3dCommandList, 1.0f, 15.0f, 15.0f) };
+	CSphereMeshDiffused* pSphereMesh{ new CSphereMeshDiffused(pd3dDevice, pd3dCommandList, 1.0f, 15.0f, 15.0f) };
 
 	Bullets.emplace_back();
 	Bullets.back() = std::make_unique<CBaseObject>();

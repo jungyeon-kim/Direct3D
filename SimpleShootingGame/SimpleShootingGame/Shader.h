@@ -113,4 +113,5 @@ public:
 
     void ReleaseBullet(int Idx);
     const std::vector<std::unique_ptr<CBaseObject>>& GetBullets() const { return Bullets; }
+    size_t GetNumOfBullets() const { return Bullets.size(); }
 };

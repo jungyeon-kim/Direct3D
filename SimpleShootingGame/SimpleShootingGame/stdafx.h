@@ -101,6 +101,12 @@ namespace Vector3
 		XMStoreFloat3(&xmf3Result, XMLoadFloat3(&xmf3Vector1) - XMLoadFloat3(&xmf3Vector2));
 		return xmf3Result;
 	}
+	inline float Distance(const XMFLOAT3& xmf3Vector1, const XMFLOAT3& xmf3Vector2)
+	{
+		XMFLOAT3 xmf3Result;
+		XMStoreFloat3(&xmf3Result, XMLoadFloat3(&xmf3Vector1) - XMLoadFloat3(&xmf3Vector2));
+		return sqrtf(pow(xmf3Result.x, 2) + pow(xmf3Result.y, 2) + pow(xmf3Result.y, 2));
+	}
 	inline float DotProduct(XMFLOAT3& xmf3Vector1, XMFLOAT3& xmf3Vector2)
 	{
 		XMFLOAT3 xmf3Result;
