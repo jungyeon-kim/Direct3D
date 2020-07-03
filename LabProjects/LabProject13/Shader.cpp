@@ -371,7 +371,7 @@ void CInstancingShader::CreateShaderVariables(ID3D12Device* pd3dDevice, ID3D12Gr
 	sizeof(VS_VB_INSTANCE)* m_nObjects, D3D12_HEAP_TYPE_UPLOAD,
 		D3D12_RESOURCE_STATE_GENERIC_READ, NULL);
 
-		//정점 버퍼(업로드 힙)에 대한 포인터를 저장한다. 
+	//정점 버퍼(업로드 힙)에 대한 포인터를 저장한다. 
 	m_pd3dcbGameObjects->Map(0, NULL, (void **)&m_pcbMappedGameObjects);
 }
 
