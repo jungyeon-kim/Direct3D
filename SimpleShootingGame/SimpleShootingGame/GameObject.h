@@ -32,12 +32,15 @@ public:
     virtual void Animate(float fTimeElapsed);
     virtual void OnPrepareRender();
     virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);
+    virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, UINT nInstances);
 
     //모델 좌표계의 픽킹 광선을 생성한다. 
     void GenerateRayForPicking(XMFLOAT3& xmf3PickPosition, XMFLOAT4X4& xmf4x4View,
     XMFLOAT3* pxmf3PickRayOrigin, XMFLOAT3* pxmf3PickRayDirection);
     //카메라 좌표계의 한 점에 대한 모델 좌표계의 픽킹 광선을 생성하고 객체와의 교차를 검사한다. 
     int PickObjectByRayIntersection(XMFLOAT3& xmf3PickPosition, XMFLOAT4X4& xmf4x4View, float* pfHitDistance);
+
+    XMFLOAT4X4 GetWorldMatrix() { return m_xmf4x4World; }
 
     //게임 객체의 월드 변환 행렬에서 위치 벡터와 방향(x-축, y-축, z-축) 벡터를 반환한다. 
     XMFLOAT3 GetPosition();
@@ -51,21 +54,27 @@ public:
     void MoveStrafe(float fDistance = 1.0f);
     void MoveUp(float fDistance = 1.0f);
     void MoveForward(float fDistance = 1.0f);
+    void Move(XMFLOAT3& vDirection, float fSpeed);
     //게임 객체를 회전(x-축, y-축, z-축)한다. 
     void Rotate(float fPitch = 10.0f, float fYaw = 10.0f, float fRoll = 10.0f);
     void Rotate(XMFLOAT3* pxmf3Axis, float fAngle);
 };
 
-class CRotatingObject : public CGameObject
+class CCubeObject : public CGameObject
 {
 private:
+    XMFLOAT3 m_xmf3MovingDirection{};
+    float m_fMovingSpeed{};
+
     XMFLOAT3 m_xmf3RotationAxis{};
     float m_fRotationSpeed{};
 public:
-    CRotatingObject();
-    virtual ~CRotatingObject();
+    CCubeObject();
+    virtual ~CCubeObject();
 
-    void SetRotationSpeed(float fRotationSpeed) { m_fRotationSpeed = fRotationSpeed; }
+    void SetMovingDirection(const XMFLOAT3& xmf3MovingDirection) { m_xmf3MovingDirection = xmf3MovingDirection; }
+    void SetMovingSpeed(float fSpeed) { m_fMovingSpeed = fSpeed; }
     void SetRotationAxis(XMFLOAT3 xmf3RotationAxis) { m_xmf3RotationAxis = xmf3RotationAxis; }
+    void SetRotationSpeed(float fRotationSpeed) { m_fRotationSpeed = fRotationSpeed; }
     virtual void Animate(float fTimeElapsed);
 };

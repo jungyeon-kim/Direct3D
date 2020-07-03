@@ -9,6 +9,13 @@ struct CB_GAMEOBJECT_INFO
     XMFLOAT4X4 m_xmf4x4World;
 };
 
+//인스턴스 정보(게임 객체의 월드 변환 행렬과 객체의 색상)를 위한 구조체이다. 
+struct VS_VB_INSTANCE
+{
+    XMFLOAT4X4 m_xmf4x4Transform;
+    XMFLOAT4 m_xmcColor;
+};
+
 //셰이더 소스 코드를 컴파일하고 그래픽스 상태 객체를 생성한다. 
 class CShader
 {
@@ -85,4 +92,27 @@ public:
     //셰이더에 포함되어 있는 모든 게임 객체들에 대한 마우스 픽킹을 수행한다. 
     virtual CGameObject *PickObjectByRayIntersection(XMFLOAT3& xmf3PickPosition,
     XMFLOAT4X4& xmf4x4View, float* pfNearHitDistance);
+};
+
+class CCubeShader : public CObjectsShader
+{
+protected:
+    //인스턴스 데이터를 포함하는 버퍼와 포인터이다. 
+    ID3D12Resource* m_pd3dcbGameObjects{};
+    VS_VB_INSTANCE* m_pcbMappedGameObjects{};
+public:
+    CCubeShader();
+    virtual ~CCubeShader();
+
+    virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
+    virtual D3D12_SHADER_BYTECODE CreateVertexShader(ID3DBlob** ppd3dShaderBlob);
+    virtual D3D12_SHADER_BYTECODE CreatePixelShader(ID3DBlob** ppd3dShaderBlob);
+
+    virtual void CreateShader(ID3D12Device* pd3dDevice, ID3D12RootSignature* pd3dGraphicsRootSignature);
+    virtual void CreateShaderVariables(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
+    virtual void UpdateShaderVariables(ID3D12GraphicsCommandList* pd3dCommandList);
+    virtual void ReleaseShaderVariables();
+
+    virtual void BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
+    virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);
 };

@@ -73,6 +73,13 @@ void CGameObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pC
 	if (m_pMesh) m_pMesh->Render(pd3dCommandList);
 }
 
+void CGameObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, UINT nInstances)
+{
+	OnPrepareRender();
+
+	if (m_pMesh) m_pMesh->Render(pd3dCommandList, nInstances);
+}
+
 void CGameObject::GenerateRayForPicking(XMFLOAT3& xmf3PickPosition, XMFLOAT4X4& xmf4x4View, 
 	XMFLOAT3* pxmf3PickRayOrigin, XMFLOAT3* pxmf3PickRayDirection)
 {
@@ -166,6 +173,12 @@ void CGameObject::MoveForward(float fDistance)
 	CGameObject::SetPosition(xmf3Position);
 }
 
+void CGameObject::Move(XMFLOAT3& vDirection, float fSpeed)
+{
+	SetPosition(m_xmf4x4World._41 + vDirection.x * fSpeed, m_xmf4x4World._42 + vDirection.y * fSpeed,
+		m_xmf4x4World._43 + vDirection.z * fSpeed);
+}
+
 //게임 객체를 주어진 각도로 회전한다. 
 void CGameObject::Rotate(float fPitch, float fYaw, float fRoll)
 {
@@ -183,17 +196,18 @@ void CGameObject::Rotate(XMFLOAT3* pxmf3Axis, float fAngle)
 
 /////////////////////////////////////////////////////////////////////////////////
 
-CRotatingObject::CRotatingObject()
+CCubeObject::CCubeObject()
 {
 	m_xmf3RotationAxis = XMFLOAT3(0.0f, 1.0f, 0.0f);
 	m_fRotationSpeed = 90.0f;
 }
 
-CRotatingObject::~CRotatingObject()
+CCubeObject::~CCubeObject()
 {
 }
 
-void CRotatingObject::Animate(float fTimeElapsed)
+void CCubeObject::Animate(float fTimeElapsed)
 {
 	CGameObject::Rotate(&m_xmf3RotationAxis, m_fRotationSpeed * fTimeElapsed);
+	CGameObject::Move(m_xmf3MovingDirection, m_fMovingSpeed * fTimeElapsed);
 }

@@ -21,7 +21,7 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 
 	//게임 객체의 리스트는 셰이더가 갖고있다.
 	m_nShaders = 1;
-	m_pShaders = new CObjectsShader[m_nShaders];
+	m_pShaders = new CCubeShader[m_nShaders];
 	m_pShaders[0].CreateShader(pd3dDevice, m_pd3dGraphicsRootSignature);
 	m_pShaders[0].BuildObjects(pd3dDevice, pd3dCommandList);
 
@@ -87,25 +87,30 @@ ID3D12RootSignature* CScene::CreateGraphicsRootSignature(ID3D12Device* pd3dDevic
 {
 	ID3D12RootSignature* pd3dGraphicsRootSignature{};
 
-	D3D12_ROOT_PARAMETER pd3dRootParameters[2];
+	D3D12_ROOT_PARAMETER pd3dRootParameters[3];
 	pd3dRootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
 	pd3dRootParameters[0].Constants.Num32BitValues = 16;
-	pd3dRootParameters[0].Constants.ShaderRegister = 0;	// b0에 저장
+	pd3dRootParameters[0].Constants.ShaderRegister = 0;		//b0: World
 	pd3dRootParameters[0].Constants.RegisterSpace = 0;
 	pd3dRootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 	pd3dRootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
 	pd3dRootParameters[1].Constants.Num32BitValues = 32;
-	pd3dRootParameters[1].Constants.ShaderRegister = 1;	// b1에 저장
+	pd3dRootParameters[1].Constants.ShaderRegister = 1;		//b1: View, Projection
 	pd3dRootParameters[1].Constants.RegisterSpace = 0;
 	pd3dRootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+	pd3dRootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV;
+	pd3dRootParameters[2].Descriptor.ShaderRegister = 0;	//t0: SRV
+	pd3dRootParameters[2].Descriptor.RegisterSpace = 0;
+	pd3dRootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
 
-	D3D12_ROOT_SIGNATURE_FLAGS d3dRootSignatureFlags{
+	D3D12_ROOT_SIGNATURE_FLAGS d3dRootSignatureFlags =
 		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
 		D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
 		D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
 		D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
-		D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS };
-	D3D12_ROOT_SIGNATURE_DESC d3dRootSignatureDesc;
+		D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
+
+	D3D12_ROOT_SIGNATURE_DESC d3dRootSignatureDesc{};
 	::ZeroMemory(&d3dRootSignatureDesc, sizeof(D3D12_ROOT_SIGNATURE_DESC));
 	d3dRootSignatureDesc.NumParameters = _countof(pd3dRootParameters);
 	d3dRootSignatureDesc.pParameters = pd3dRootParameters;
@@ -115,10 +120,11 @@ ID3D12RootSignature* CScene::CreateGraphicsRootSignature(ID3D12Device* pd3dDevic
 
 	ID3DBlob* pd3dSignatureBlob{};
 	ID3DBlob* pd3dErrorBlob{};
-	::D3D12SerializeRootSignature(&d3dRootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1,
+	D3D12SerializeRootSignature(&d3dRootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1,
 		&pd3dSignatureBlob, &pd3dErrorBlob);
 	pd3dDevice->CreateRootSignature(0, pd3dSignatureBlob->GetBufferPointer(),
-		pd3dSignatureBlob->GetBufferSize(), __uuidof(ID3D12RootSignature), (void**)&pd3dGraphicsRootSignature);
+		pd3dSignatureBlob->GetBufferSize(), __uuidof(ID3D12RootSignature), (void
+			**)&pd3dGraphicsRootSignature);
 	if (pd3dSignatureBlob) pd3dSignatureBlob->Release();
 	if (pd3dErrorBlob) pd3dErrorBlob->Release();
 

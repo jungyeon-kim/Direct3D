@@ -28,25 +28,25 @@ void CMesh::ReleaseUploadBuffers()
 	m_pd3dIndexUploadBuffer = NULL;
 };
 
-void CMesh::Render(ID3D12GraphicsCommandList* pd3dCommandList)
+void CMesh::Render(ID3D12GraphicsCommandList* pd3dCommandList, UINT nInstances)
 {
-	//메쉬의 프리미티브 유형을 설정한다. 
-	pd3dCommandList->IASetPrimitiveTopology(m_d3dPrimitiveTopology);
 	//메쉬의 정점 버퍼 뷰를 설정한다. 
 	pd3dCommandList->IASetVertexBuffers(m_nSlot, 1, &m_d3dVertexBufferView);
+	//메쉬의 프리미티브 유형을 설정한다. 
+	pd3dCommandList->IASetPrimitiveTopology(m_d3dPrimitiveTopology);
 
 	//인덱스 버퍼가 있으면 인덱스 버퍼를 파이프라인(IA: 입력 조립기)에 연결하고 인덱스를 사용하여 렌더링한다. 
 	if (m_pd3dIndexBuffer)
 	{
-		//메쉬의 인덱스 버퍼 뷰를 설정한다. 
+		//메쉬의 인덱스 버퍼 뷰를 설정한다.
 		pd3dCommandList->IASetIndexBuffer(&m_d3dIndexBufferView);
 		//메쉬의 인덱스 버퍼 뷰를 렌더링한다(파이프라인(입력 조립기)을 작동하게 한다).
-		pd3dCommandList->DrawIndexedInstanced(m_nIndices, 1, 0, 0, 0);
+		pd3dCommandList->DrawIndexedInstanced(m_nIndices, nInstances, 0, 0, 0);
 	}
 	else
 	{
 		//메쉬의 정점 버퍼 뷰를 렌더링한다(파이프라인(입력 조립기)을 작동하게 한다).
-		pd3dCommandList->DrawInstanced(m_nVertices, 1, m_nOffset, 0);
+		pd3dCommandList->DrawInstanced(m_nVertices, nInstances, m_nOffset, 0);
 	}
 }
 
@@ -214,12 +214,13 @@ CAirplaneMeshDiffused::CAirplaneMeshDiffused(ID3D12Device* pd3dDevice,
 	m_nSlot = 0;
 	m_d3dPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
-	float fx = fWidth * 0.5f, fy = fHeight * 0.5f, fz = fDepth * 0.5f;
+	float fx{ fWidth * 0.5f }, fy{ fHeight * 0.5f }, fz{ fDepth * 0.5f };
 
 	//위의 그림과 같은 비행기 메쉬를 표현하기 위한 정점 데이터이다. 
 	m_pVertices = new CDiffusedVertex[m_nVertices];
-	float x1 = fx * 0.2f, y1 = fy * 0.2f, x2 = fx * 0.1f, y3 = fy * 0.3f, y2 = ((y1 - (fy - y3)) / x1) * x2 + (fy - y3);
+	float x1{ fx * 0.2f }, y1{ fy * 0.2f }, x2{ fx * 0.1f }, y3{ fy * 0.3f }, y2{ ((y1 - (fy - y3)) / x1) * x2 + (fy - y3) };
 	int i{};
+
 	//비행기 메쉬의 위쪽 면
 	m_pVertices[i++] = CDiffusedVertex(XMFLOAT3(0.0f, +(fy + y3), -fz), Vector4::Add(xmf4Color, RANDOM_COLOR));
 	m_pVertices[i++] = CDiffusedVertex(XMFLOAT3(+x1, -y1, -fz), Vector4::Add(xmf4Color, RANDOM_COLOR));

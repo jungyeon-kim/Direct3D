@@ -365,6 +365,12 @@ void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPA
 		case VK_F3:
 			if (m_pPlayer) m_pCamera = m_pPlayer->ChangeCamera((wParam - VK_F1 + 1), m_GameTimer.GetTimeElapsed());
 			break;
+		case VK_CONTROL:
+		{
+			static CAirplanePlayer* pAirPlayer{ dynamic_cast<CAirplanePlayer*>(m_pPlayer) };
+			if (pAirPlayer) pAirPlayer->Shot();
+			break;
+		}
 		default:
 			break;
 		}

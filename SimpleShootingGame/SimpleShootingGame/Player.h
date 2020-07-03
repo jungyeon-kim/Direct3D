@@ -112,4 +112,6 @@ public:
 
 	virtual CCamera* ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed);
 	virtual void OnPrepareRender();
+
+	void Shot();
 };
