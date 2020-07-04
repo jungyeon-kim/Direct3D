@@ -1,5 +1,8 @@
 #include "stdafx.h"
 
+using namespace std;
+using namespace chrono;
+
 // 버퍼 리소스를 생성하는 함수이다. 버퍼의 힙 유형에 따라 버퍼 리소스를 생성하고 초기화 데이터가 있으면 초기화 한다.
 ID3D12Resource* CreateBufferResource(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList
 	* pd3dCommandList, void* pData, UINT nBytes, D3D12_HEAP_TYPE d3dHeapType,
@@ -90,4 +93,48 @@ ID3D12Resource* CreateBufferResource(ID3D12Device* pd3dDevice, ID3D12GraphicsCom
 		}
 
 	return pd3dBuffer;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+//함수포인터와 호출시간을 가지고있는 구조체이다.
+struct Event
+{
+	function<void()> CallBack{};
+	high_resolution_clock::time_point WakeUpTime{};
+
+	constexpr bool operator>(const Event& Rhs) const
+	{
+		return WakeUpTime > Rhs.WakeUpTime;
+	}
+};
+
+//Event 구조체를 가지는 우선순위 큐 자료구조이다. WakeUpTime이 작을수록 우선순위가 높다.
+priority_queue<Event, vector<Event>, greater<Event>> TimerQueue;
+
+//타이머 큐에 이벤트를 추가한다.
+void AddTimerQueue(function<void()> CallBack, int Duration)
+{
+	Event Event{ CallBack, high_resolution_clock::now() + milliseconds{ Duration } };
+	TimerQueue.push(Event);
+}
+
+//타이머 스레드이다.
+void TimerThread()
+{
+	while (true)
+	{
+		this_thread::sleep_for(1ms);
+
+		while (true)
+		{
+			if (TimerQueue.empty() || TimerQueue.top().WakeUpTime > high_resolution_clock::now()) break;
+
+			Event Event{ TimerQueue.top() };
+			TimerQueue.pop();
+
+			//등록된 함수를 호출한다.
+			Event.CallBack();
+		}
+	}
 }

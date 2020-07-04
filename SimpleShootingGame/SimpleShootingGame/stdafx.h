@@ -25,6 +25,10 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
+#include <thread>
+#include <chrono>
+#include <queue>
+#include <functional>
 // for Direct3D
 #include <wrl.h>
 #include <shellapi.h>
@@ -62,6 +66,9 @@ extern ID3D12Resource* CreateBufferResource(
 	void* pData, UINT nBytes, D3D12_HEAP_TYPE d3dHeapType = D3D12_HEAP_TYPE_UPLOAD, 
 	D3D12_RESOURCE_STATES d3dResourceStates = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, 
 	ID3D12Resource** ppd3dUploadBuffer = NULL);
+
+void AddTimerQueue(std::function<void()> CallBack, int Duration);
+void TimerThread();
 
 //3차원 벡터의 연산
 namespace Vector3

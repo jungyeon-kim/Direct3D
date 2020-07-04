@@ -216,17 +216,13 @@ void CScene::ProcessCollision()
 
 				//파티클 생성
 				ParticlesShader[i].ExecuteParticle(Objects[i]->GetPosition());
+				//파티클 제거
+				AddTimerQueue([=]() 
+					{
+						Objects[i]->SetVisible(true);
+						ParticlesShader[i].StopParticle();
+					}, 1500);
 			}
-		}
-		// 파티클 제거
-		static int Timer[10]{};
-
-		if (!Objects[i]->GetVisible()) ++Timer[i];
-		if (Timer[i] > 100)
-		{
-			Objects[i]->SetVisible(true);
-			ParticlesShader[i].StopParticle();
-			Timer[i] = 0;
 		}
 	}
 }

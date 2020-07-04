@@ -45,6 +45,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	MSG msg;
 
+	// 타이머 루프입니다:
+	std::thread Timer{ TimerThread };
 	// 기본 메시지 루프입니다:
 	while (1)
 	{
@@ -62,6 +64,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			gGameFramework.FrameAdvance();
 		}
 	}
+
+	Timer.join();
 	gGameFramework.OnDestroy();
 
 	return (int)msg.wParam;
