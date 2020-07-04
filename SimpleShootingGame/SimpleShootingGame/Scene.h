@@ -4,6 +4,7 @@ class CGameObject;
 class CObjectsShader;
 class CBulletsShader;
 class CParticlesShader;
+class CTilesShader;
 class CPlayer;
 
 class CScene
@@ -16,6 +17,9 @@ protected:
     //파티클에 대한 셰이더이다.
     CParticlesShader* ParticlesShader{};
     int NumOfParticles{};
+
+    //맵에 대한 셰이더이다.
+    CTilesShader* TilesShader{};
 
     //프레임워크에서 생성한 플레이어를 참조하기위한 변수이다.
     CPlayer* Player{};

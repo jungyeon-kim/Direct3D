@@ -33,6 +33,10 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 		ParticlesShader[i].CreateShader(pd3dDevice, m_pd3dGraphicsRootSignature);
 		ParticlesShader[i].BuildObjects(pd3dDevice, pd3dCommandList);
 	}
+	//타일 셰이더를 생성한다.
+	TilesShader = new CTilesShader{};
+	TilesShader->CreateShader(pd3dDevice, m_pd3dGraphicsRootSignature);
+	TilesShader->BuildObjects(pd3dDevice, pd3dCommandList);
 }
 
 void CScene::ReleaseObjects()
@@ -51,6 +55,11 @@ void CScene::ReleaseObjects()
 		ParticlesShader[i].ReleaseShaderVariables();
 		ParticlesShader[i].ReleaseObjects();
 	}
+	if (ParticlesShader) delete[] ParticlesShader;
+
+	TilesShader->ReleaseShaderVariables();
+	TilesShader->ReleaseObjects();
+	if (TilesShader) delete TilesShader;
 }
 
 bool CScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam) 
@@ -72,6 +81,8 @@ void CScene::AnimateObjects(float fTimeElapsed)
 { 
 	for (int i = 0; i < m_nShaders; i++) m_pShaders[i].AnimateObjects(fTimeElapsed);
 	for (int i = 0; i < NumOfParticles; ++i) ParticlesShader[i].AnimateObjects(fTimeElapsed);
+	TilesShader->AnimateObjects(fTimeElapsed);
+	TilesShader->UpdatePosition(Player->GetPosition().z);
 }
 
 void CScene::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
@@ -84,12 +95,14 @@ void CScene::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera
 	//씬을 렌더링하는 것은 씬을 구성하는 셰이더 객체(게임 객체를 포함하는 객체)들을 렌더링하는 것이다. 
 	for (int i = 0; i < m_nShaders; i++) m_pShaders[i].Render(pd3dCommandList, pCamera);
 	for (int i = 0; i < NumOfParticles; ++i) ParticlesShader[i].Render(pd3dCommandList, pCamera);
+	TilesShader->Render(pd3dCommandList, pCamera);
 }
 
 void CScene::ReleaseUploadBuffers()
 {
 	for (int i = 0; i < m_nShaders; i++) m_pShaders[i].ReleaseUploadBuffers();
 	for (int i = 0; i < NumOfParticles; ++i) ParticlesShader[i].ReleaseUploadBuffers();
+	TilesShader->ReleaseUploadBuffers();
 }
 
 ID3D12RootSignature* CScene::GetGraphicsRootSignature()
