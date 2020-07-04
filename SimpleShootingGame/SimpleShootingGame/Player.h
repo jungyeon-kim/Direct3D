@@ -11,6 +11,7 @@
 
 class CCamera;
 class CBulletsShader;
+class CBaseObject;
 
 class CPlayer : public CGameObject
 {
@@ -43,6 +44,11 @@ protected:
 
 	//플레이어의 총알에 대한 셰이더이다.
 	CBulletsShader* BulletShader{};
+
+	//픽킹된 게임오브젝트를 참조하는 변수이다.
+	CGameObject* SelectedTarget{};
+	//픽킹된 게임오브젝트를 추적하는 불릿이다.
+	CBaseObject* GuidedBullet{};
 
 	//플레이어에 현재 설정된 카메라이다. 
 	CCamera *m_pCamera{};
@@ -79,7 +85,6 @@ public:
 	//플레이어를 이동하는 함수이다. 
 	void Move(ULONG nDirection, float fDistance, bool bVelocity = false);
 	void Move(const XMFLOAT3& xmf3Shift, bool bVelocity = false);
-	void Move(float fxOffset = 0.0f, float fyOffset = 0.0f, float fzOffset = 0.0f);
 	//플레이어를 회전하는 함수이다. 
 	void Rotate(float x, float y, float z);
 	//플레이어의 위치와 회전 정보를 경과 시간에 따라 갱신하는 함수이다. 
@@ -105,6 +110,9 @@ public:
 
 	//플레이어의 카메라가 3인칭 카메라일 때 플레이어(메쉬)를 렌더링한다. 
 	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera = nullptr);
+
+	//픽킹된 객체가 있으면 타겟으로 설정한다.
+	void SetTarget(CGameObject* Target) { SelectedTarget = Target; }
 
 	CBulletsShader* GetBulletShader() const { return BulletShader; }
 };

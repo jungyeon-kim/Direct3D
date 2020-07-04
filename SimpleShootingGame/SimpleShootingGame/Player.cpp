@@ -155,6 +155,24 @@ void CPlayer::Update(float fTimeElapsed)
 
 	if (BulletShader)
 	{
+		//GuidedBullet이 일정시간 이후 픽킹된 오브젝트를 추적하도록 한다.
+		if (GuidedBullet)
+		{
+			static int Timer{};
+
+			if (Timer > 20)
+			{
+				XMFLOAT3 Direction{ Vector3::Normalize(
+				Vector3::Subtract(SelectedTarget->GetPosition(), GuidedBullet->GetPosition())) };
+				GuidedBullet->SetMovingDirection(Direction);
+				GuidedBullet = nullptr;
+				SelectedTarget = nullptr;
+				Timer = 0;
+			}
+
+			++Timer;
+		}
+
 		//총알 객체를 애니메이션한다.
 		BulletShader->AnimateObjects(fTimeElapsed);
 
@@ -371,4 +389,7 @@ CCamera* CAirplanePlayer::ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed)
 void CAirplanePlayer::Shot(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
 {
 	BulletShader->BuildObjects(m_xmf3Position, m_xmf3Look, pd3dDevice, pd3dCommandList);
+
+	//픽킹된 게임오브젝트가 있고 GuidedBullet이 없다면 가장 최근에 발사한 총알을 GuidedBullet이 참조한다.
+	if (SelectedTarget && !GuidedBullet) GuidedBullet = BulletShader->GetBullets().back().get();
 }
