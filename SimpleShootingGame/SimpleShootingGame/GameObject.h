@@ -79,6 +79,9 @@ public:
     CBaseObject();
     virtual ~CBaseObject();
 
+    XMFLOAT3 GetMovingDirection() const { return m_xmf3MovingDirection; }
+    XMFLOAT3 GetRotationAxis() const { return m_xmf3RotationAxis; }
+
     void SetMovingDirection(const XMFLOAT3& xmf3MovingDirection) 
     { 
         XMStoreFloat3(&m_xmf3MovingDirection, XMVector3Normalize(XMLoadFloat3(&xmf3MovingDirection))); 

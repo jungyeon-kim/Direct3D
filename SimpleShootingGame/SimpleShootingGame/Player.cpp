@@ -388,7 +388,6 @@ void CAirplanePlayer::Shot(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* 
 {
 	BulletShader->BuildObjects(m_xmf3Position, m_xmf3Look, pd3dDevice, pd3dCommandList);
 
-
 	//픽킹된 게임오브젝트가 있고 GuidedBullet이 없다면 가장 최근에 발사한 총알을 GuidedBullet이 참조한다.
 	if (SelectedTarget && !GuidedBullet) GuidedBullet = BulletShader->GetBullets().back().get();
 }

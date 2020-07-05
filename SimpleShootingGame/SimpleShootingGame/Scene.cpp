@@ -238,4 +238,50 @@ void CScene::ProcessCollision()
 			}
 		}
 	}
+
+	// 플레이어 & 타일 맵 처리
+	BoundingOrientedBox Box{ Player->GetBoundingBox() };
+
+	Box.Transform(Box, XMLoadFloat4x4(&Player->GetWorldMatrix()));
+
+	for (int i = 0; i < 4; ++i)
+		if (Box.Intersects(XMLoadFloat4(&TilesShader->GetWall(i))))
+			Player->SetPosition(XMFLOAT3{ 0.0f, 0.0f, Player->GetPosition().z });
+
+	// 큐브 & 타일 맵 처리
+	for (int i = 0; i < m_pShaders->GetNumOfObjects(); ++i)
+		for (int j = 0; j < 4; ++j)
+		{
+			BoundingOrientedBox Box{ Objects[i]->GetBoundingBox() };
+
+			Box.Transform(Box, XMLoadFloat4x4(&Objects[i]->GetWorldMatrix()));
+
+			if (Box.Intersects(XMLoadFloat4(&TilesShader->GetWall(j))))
+			{
+				CBaseObject* BaseObject{ dynamic_cast<CBaseObject*>(Objects[i]) };
+				BaseObject->SetMovingDirection(Vector3::Inverse(BaseObject->GetMovingDirection()));
+			}
+		}
+
+	// 큐브 & 큐브 체크
+	for (int i = 0; i < m_pShaders->GetNumOfObjects(); ++i)
+		for (int j = i; j < m_pShaders->GetNumOfObjects(); ++j)
+		{
+			if (i == j) continue;
+
+			BoundingOrientedBox LeftBox{ Objects[i]->GetBoundingBox() };
+			BoundingOrientedBox RightBox{ Objects[j]->GetBoundingBox() };
+
+			LeftBox.Transform(LeftBox, XMLoadFloat4x4(&Objects[i]->GetWorldMatrix()));
+			RightBox.Transform(RightBox, XMLoadFloat4x4(&Objects[j]->GetWorldMatrix()));
+
+			if (IsCollided(LeftBox, RightBox))
+			{
+				CBaseObject* LeftBaseObject{ dynamic_cast<CBaseObject*>(Objects[i]) };
+				CBaseObject* RightBaseObject{ dynamic_cast<CBaseObject*>(Objects[j]) };
+
+				LeftBaseObject->SetMovingDirection(Vector3::Inverse(LeftBaseObject->GetMovingDirection()));
+				RightBaseObject->SetMovingDirection(Vector3::Inverse(LeftBaseObject->GetMovingDirection()));
+			}
+		}
 }

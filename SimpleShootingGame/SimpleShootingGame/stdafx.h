@@ -114,6 +114,12 @@ namespace Vector3
 		XMStoreFloat3(&xmf3Result, XMLoadFloat3(&xmf3Vector1) - XMLoadFloat3(&xmf3Vector2));
 		return sqrtf(pow(xmf3Result.x, 2) + pow(xmf3Result.y, 2) + pow(xmf3Result.y, 2));
 	}
+	inline XMFLOAT3 Inverse(const XMFLOAT3& xmf3Vector)
+	{
+		XMFLOAT3 xmf3Result;
+		XMStoreFloat3(&xmf3Result, XMVectorMultiply(XMLoadFloat3(&xmf3Vector), XMVECTOR{ -1.0f, -1.0f, -1.0f, 1.0f }));
+		return xmf3Result;
+	}
 	inline float DotProduct(XMFLOAT3& xmf3Vector1, XMFLOAT3& xmf3Vector2)
 	{
 		XMFLOAT3 xmf3Result;
