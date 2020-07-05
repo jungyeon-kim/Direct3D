@@ -407,14 +407,14 @@ void CBulletsShader::CreateShader(ID3D12Device* pd3dDevice, ID3D12RootSignature*
 void CBulletsShader::BuildObjects(XMFLOAT3& xmf3Position, XMFLOAT3& xmf3Look, ID3D12Device* pd3dDevice, 
 	ID3D12GraphicsCommandList* pd3dCommandList)
 {
-	CSphereMeshDiffused* pSphereMesh{ new CSphereMeshDiffused(pd3dDevice, pd3dCommandList, 1.0f, 15.0f, 15.0f) };
+	CSphereMeshDiffused* pSphereMesh{ new CSphereMeshDiffused(pd3dDevice, pd3dCommandList, 2.0f, 15, 15) };
 
 	Bullets.emplace_back();
 	Bullets.back() = std::make_unique<CBaseObject>();
 	Bullets.back()->SetMesh(pSphereMesh);
 	Bullets.back()->SetPosition(xmf3Position);
 	Bullets.back()->SetMovingDirection(xmf3Look);
-	Bullets.back()->SetMovingSpeed(200.0f);
+	Bullets.back()->SetMovingSpeed(400.0f);
 	Bullets.back()->SetRotationAxis(XMFLOAT3(1.0f, 1.0f, 1.0f));
 	Bullets.back()->SetRotationSpeed(10.0f * float(rand() % 5 + 1));
 
@@ -488,7 +488,7 @@ D3D12_SHADER_BYTECODE CParticlesShader::CreatePixelShader(ID3DBlob** ppd3dShader
 void CParticlesShader::CreateShader(ID3D12Device* pd3dDevice, ID3D12RootSignature* pd3dGraphicsRootSignature)
 {
 	m_nPipelineStates = 1;
-	m_ppd3dPipelineStates = new ID3D12PipelineState * [m_nPipelineStates];
+	m_ppd3dPipelineStates = new ID3D12PipelineState*[m_nPipelineStates];
 	CShader::CreateShader(pd3dDevice, pd3dGraphicsRootSignature);
 }
 
@@ -557,4 +557,126 @@ void CParticlesShader::ExecuteParticle(const XMFLOAT3& NewPosition)
 void CParticlesShader::StopParticle()
 {
 	for (int i = 0; i < m_nObjects; ++i) if (m_ppObjects[i]) m_ppObjects[i]->SetVisible(false);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+CTilesShader::CTilesShader()
+{
+}
+
+CTilesShader::~CTilesShader()
+{
+}
+
+D3D12_INPUT_LAYOUT_DESC CTilesShader::CreateInputLayout()
+{
+	UINT nInputElementDescs{ 2 };
+	D3D12_INPUT_ELEMENT_DESC* pd3dInputElementDescs{ new D3D12_INPUT_ELEMENT_DESC[nInputElementDescs] };
+
+	pd3dInputElementDescs[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
+	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[1] = { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12,
+	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+
+	D3D12_INPUT_LAYOUT_DESC d3dInputLayoutDesc;
+	d3dInputLayoutDesc.pInputElementDescs = pd3dInputElementDescs;
+	d3dInputLayoutDesc.NumElements = nInputElementDescs;
+
+	return d3dInputLayoutDesc;
+}
+
+D3D12_SHADER_BYTECODE CTilesShader::CreateVertexShader(ID3DBlob** ppd3dShaderBlob)
+{
+	return CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSDiffused", "vs_5_1", ppd3dShaderBlob);
+}
+
+D3D12_SHADER_BYTECODE CTilesShader::CreatePixelShader(ID3DBlob** ppd3dShaderBlob)
+{
+	return CShader::CompileShaderFromFile(L"Shaders.hlsl", "PSDiffused", "ps_5_1", ppd3dShaderBlob);
+}
+
+void CTilesShader::CreateShader(ID3D12Device* pd3dDevice, ID3D12RootSignature* pd3dGraphicsRootSignature)
+{
+	m_nPipelineStates = 1;
+	m_ppd3dPipelineStates = new ID3D12PipelineState*[m_nPipelineStates];
+	CShader::CreateShader(pd3dDevice, pd3dGraphicsRootSignature);
+}
+
+void CTilesShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
+{
+	float fWidth{ 40.0f }, fHeight{ 40.0f }, fDepth{ 40.0f };
+	CCubeMeshDiffused* pCubeMesh{ new CCubeMeshDiffused(pd3dDevice, pd3dCommandList, fWidth, fHeight, fDepth) };
+
+	m_nObjects = 1600;
+	m_ppObjects = new CGameObject*[m_nObjects];
+	OriginPosition = new XMFLOAT3[m_nObjects];
+
+	CGameObject* pGameObject{};
+	for (int i = 0; i < m_nObjects; ++i)
+	{
+		pGameObject = new CGameObject();
+		pGameObject->SetMesh(pCubeMesh);
+		m_ppObjects[i] = pGameObject;
+	}
+
+	int Idx{};
+	for (int i = -5; i < 5; ++i)
+		for (int j = -20; j < 20; ++j)
+		{
+			//위쪽
+			m_ppObjects[Idx]->SetPosition(XMFLOAT3(fWidth * i, fHeight * 5.0f, fDepth * j));
+			OriginPosition[Idx++] = m_ppObjects[Idx]->GetPosition();
+			//아래쪽
+			m_ppObjects[Idx]->SetPosition(XMFLOAT3(fWidth * i, fHeight * -5.0f, fDepth * j));
+			OriginPosition[Idx++] = m_ppObjects[Idx]->GetPosition();
+			//오른쪽
+			m_ppObjects[Idx]->SetPosition(XMFLOAT3(fWidth * 5.0f, fHeight * i, fDepth * j));
+			OriginPosition[Idx++] = m_ppObjects[Idx]->GetPosition();
+			//왼쪽
+			m_ppObjects[Idx]->SetPosition(XMFLOAT3(fWidth * -5.0f, fHeight * i, fDepth * j));
+			OriginPosition[Idx++] = m_ppObjects[Idx]->GetPosition();
+		}
+
+	CreateShaderVariables(pd3dDevice, pd3dCommandList);
+}
+
+void CTilesShader::ReleaseObjects()
+{
+	if (m_ppObjects)
+	{
+		for (int j = 0; j < m_nObjects; j++) if (m_ppObjects[j]) delete m_ppObjects[j];
+		delete[] m_ppObjects;
+	}
+}
+
+void CTilesShader::AnimateObjects(float fTimeElapsed)
+{
+	for (int j = 0; j < m_nObjects; j++) m_ppObjects[j]->Animate(fTimeElapsed);
+}
+
+void CTilesShader::ReleaseUploadBuffers()
+{
+	if (m_ppObjects) for (int j = 0; j < m_nObjects; j++) m_ppObjects[j]->ReleaseUploadBuffers();
+}
+
+void CTilesShader::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
+{
+	CShader::Render(pd3dCommandList, pCamera);
+
+	for (int j = 0; j < m_nObjects; j++) if (m_ppObjects[j]) m_ppObjects[j]->Render(pd3dCommandList, pCamera);
+}
+
+void CTilesShader::UpdatePosition(float NewPosZ)
+{
+	if (abs(CenterZ - NewPosZ) <= 40.0f) return;
+
+	CenterZ = NewPosZ;
+
+	XMFLOAT3 Position{};
+	for (int i = 0; i < m_nObjects; ++i)
+	{
+		Position = Vector3::Add(OriginPosition[i], XMFLOAT3{ 0.0f, 0.0f, NewPosZ });
+		m_ppObjects[i]->SetPosition(Position);
+	}
 }

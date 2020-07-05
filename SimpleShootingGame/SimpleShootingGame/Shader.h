@@ -147,3 +147,39 @@ public:
     void ExecuteParticle(const XMFLOAT3& NewPosition);
     void StopParticle();
 };
+
+//타일 객체들을 포함하는 셰이더 객체이다. 
+class CTilesShader : public CShader
+{
+protected:
+    CGameObject** m_ppObjects{};
+    int m_nObjects{};
+
+    //타일 맵의 중심 Z좌표이다.
+    float CenterZ{};
+    //타일들의 초기 위치이다.
+    XMFLOAT3* OriginPosition{};
+    //네 방향의 벽이다.
+    XMFLOAT4 Wall[4]{ XMFLOAT4{0.0f, -1.0f, 0.0f, 180.0f},XMFLOAT4{0.0f, 1.0f, 0.0f, 180.0f},
+        XMFLOAT4{1.0f, 0.0f, 0.0f, 180.0f},XMFLOAT4{-1.0f, 0.0f, 0.0f, 180.0f} };
+public:
+    CTilesShader();
+    virtual ~CTilesShader();
+
+    virtual void BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
+    virtual void AnimateObjects(float fTimeElapsed);
+    virtual void ReleaseObjects();
+
+    virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
+    virtual D3D12_SHADER_BYTECODE CreateVertexShader(ID3DBlob** ppd3dShaderBlob);
+    virtual D3D12_SHADER_BYTECODE CreatePixelShader(ID3DBlob** ppd3dShaderBlob);
+    virtual void CreateShader(ID3D12Device* pd3dDevice, ID3D12RootSignature* pd3dGraphicsRootSignature);
+
+    virtual void ReleaseUploadBuffers();
+
+    virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);
+
+    void UpdatePosition(float NewPosZ);
+
+    XMFLOAT4 GetWall(int Idx) { return Wall[Idx]; }
+};
