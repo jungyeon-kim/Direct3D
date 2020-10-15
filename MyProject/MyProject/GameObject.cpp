@@ -9,31 +9,32 @@ CGameObject::CGameObject()
 
 CGameObject::~CGameObject()
 {
-	if (m_pMesh) m_pMesh->Release();
-	if (m_pShader)
+	if (Mesh) Mesh->Release();
+	if (Shader)
 	{
-		m_pShader->ReleaseShaderVariables();
-		m_pShader->Release();
+		Shader->ReleaseShaderVariables();
+		Shader->Release();
 	}
 }
 
-void CGameObject::SetShader(CShader* pShader)
+void CGameObject::SetShader(CShader* NewShader)
 {
-	if (m_pShader) m_pShader->Release();
-	m_pShader = pShader;
-	if (m_pShader) m_pShader->AddRef();
+	if (Shader) Shader->Release();
+	Shader = NewShader;
+	if (Shader) Shader->AddRef();
 }
-void CGameObject::SetMesh(CMesh* pMesh)
+
+void CGameObject::SetMesh(CMesh* NewMesh)
 {
-	if (m_pMesh) m_pMesh->Release();
-	m_pMesh = pMesh;
-	if (m_pMesh) m_pMesh->AddRef();
+	if (Mesh) Mesh->Release();
+	Mesh = NewMesh;
+	if (Mesh) Mesh->AddRef();
 }
 
 void CGameObject::ReleaseUploadBuffers()
 {
-	//정점 버퍼를 위한 업로드 버퍼를 소멸시킨다. 
-	if (m_pMesh) m_pMesh->ReleaseUploadBuffers();
+	// 정점 버퍼를 위한 업로드 버퍼를 소멸
+	if (Mesh) Mesh->ReleaseUploadBuffers();
 }
 
 void CGameObject::Animate(float fTimeElapsed)
@@ -44,11 +45,10 @@ void CGameObject::OnPrepareRender()
 {
 }
 
-void CGameObject::Render(ID3D12GraphicsCommandList* pd3dCommandList)
+void CGameObject::Render(ID3D12GraphicsCommandList* CommandList)
 {
 	OnPrepareRender();
-	//게임 객체에 셰이더 객체가 연결되어 있으면 셰이더 상태 객체를 설정한다. 
-	if (m_pShader) m_pShader->Render(pd3dCommandList);
-	//게임 객체에 메쉬가 연결되어 있으면 메쉬를 렌더링한다. 
-	if (m_pMesh) m_pMesh->Render(pd3dCommandList);
+
+	// 게임 객체에 메쉬가 연결되어 있으면 메쉬를 렌더링
+	if (Mesh) Mesh->Render(CommandList);
 }

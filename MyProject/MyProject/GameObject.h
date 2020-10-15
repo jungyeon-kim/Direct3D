@@ -5,23 +5,23 @@ class CShader;
 
 class CGameObject
 {
+private:
+    int RefCount{};
+protected:
+    XMFLOAT4X4 WorldMatrix{};
+    CMesh* Mesh{};
+    CShader* Shader{};
 public:
     CGameObject();
     virtual ~CGameObject();
-private:
-    int m_nReferences{};
-public:
-    void AddRef() { ++m_nReferences; }
-    void Release() { if (--m_nReferences <= 0) delete this; }
-protected:
-    XMFLOAT4X4 m_xmf4x4World{};
-    CMesh* m_pMesh{};
-    CShader* m_pShader{};
-public:
+
+    void AddRef() { ++RefCount; }
+    void Release() { if (--RefCount <= 0) delete this; }
     void ReleaseUploadBuffers();
-    virtual void SetMesh(CMesh* pMesh);
-    virtual void SetShader(CShader* pShader);
-    virtual void Animate(float fTimeElapsed);
+
+    virtual void Animate(float ElapsedTime);
     virtual void OnPrepareRender();
-    virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList);
+    virtual void Render(ID3D12GraphicsCommandList* CommandList);
+    virtual void SetMesh(CMesh* NewMesh);
+    virtual void SetShader(CShader* NewShader);
 };

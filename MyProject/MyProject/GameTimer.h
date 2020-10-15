@@ -6,35 +6,35 @@ class CGameTimer
 {
 private:
 	// 컴퓨터가 Performance Counter를 가지고 있는 가
-	bool m_bHardwareHasPerformanceCounter{};
+	bool bIsHardwareHasPerformanceCounter{};
 	// Scale Counter의 양
-	float m_fTimeScale{};
+	float TimeScale{};
 	// 마지막 프레임 이후 지나간 시간
-	float m_fTimeElapsed{};
+	float ElapsedTime{};
 	// 현재 시간
-	__int64 m_nCurrentTime{};
+	__int64 CurrentTime{};
 	// 마지막 프레임의 시간
-	__int64 m_nLastTime{};
+	__int64 LastTime{};
 	// 컴퓨터의 Performance Frequency
-	__int64 m_nPerformanceFrequency{};
+	__int64 PerformanceFrequency{};
 
 	// 프레임 시간을 누적하기 위한 배열
-	float m_fFrameTime[MAX_SAMPLE_COUNT]{};
+	float FrameTime[MAX_SAMPLE_COUNT]{};
 	// 누적된 프레임 횟수
-	ULONG m_nSampleCount{};
+	ULONG SampleCount{};
 
 	// 현재의 프레임 레이트
-	unsigned long m_nCurrentFrameRate{};
+	unsigned long CurrentFrameRate{};
 	// 초당 프레임 수
-	unsigned long m_nFramesPerSecond{};
+	unsigned long FramesPerSecond{};
 	// 프레임 레이트 계산 소요 시간
-	float m_fFPSTimeElapsed{};
+	float FPSElapsedTime{};
 public:
 	CGameTimer();
 	virtual ~CGameTimer();
 
-	void Tick(float fLockFPS = 0.0f);
-	unsigned long GetFrameRate(LPTSTR lpszString = nullptr, int nCharacters = 0);
-	float GetTimeElapsed();
+	void Tick(float LockFPS = 0.0f);
+	unsigned long GetFrameRate(LPTSTR String = nullptr, int Size = 0);
+	float GetElapsedTime();
 };
 

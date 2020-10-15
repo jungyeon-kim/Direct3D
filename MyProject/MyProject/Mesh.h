@@ -1,64 +1,63 @@
 #pragma once
 
-//정점을 표현하기 위한 클래스를 선언한다. 
 class CVertex
 {
 protected:
-	//정점의 위치 벡터이다(모든 정점은 최소한 위치 벡터를 가져야 한다). 
-	XMFLOAT3 m_xmf3Position{};
+	XMFLOAT3 Position{};
 public:
 	CVertex() = default;
-	CVertex(XMFLOAT3 xmf3Position) { m_xmf3Position = xmf3Position; }
+	CVertex(XMFLOAT3 NewPosition) { Position = NewPosition; }
 	~CVertex() = default;
 };
 
 class CDiffusedVertex : public CVertex
 {
 protected:
-	//정점의 색상이다. 
-	XMFLOAT4 m_xmf4Diffuse{};
+	XMFLOAT4 Color{};
 public:
 	CDiffusedVertex() = default;
-	CDiffusedVertex(float x, float y, float z, XMFLOAT4 xmf4Diffuse)
+	CDiffusedVertex(float x, float y, float z, XMFLOAT4 NewDiffuse)
 	{
-		m_xmf3Position = XMFLOAT3(x, y, z); 
-		m_xmf4Diffuse = xmf4Diffuse;
+		Position = XMFLOAT3{ x, y, z };
+		Color = NewDiffuse;
 	}
-	CDiffusedVertex(XMFLOAT3 xmf3Position, XMFLOAT4 xmf4Diffuse) 
+	CDiffusedVertex(XMFLOAT3 NewPosition, XMFLOAT4 NewDiffuse)
 	{
-		m_xmf3Position = xmf3Position; 
-		m_xmf4Diffuse = xmf4Diffuse;
+		Position = NewPosition;
+		Color = NewDiffuse;
 	}
 	~CDiffusedVertex() = default;
 };
 
 class CMesh
 {
-public:
-	CMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
-	virtual ~CMesh();
 private:
-	int m_nReferences{};
-public:
-	void AddRef() { ++m_nReferences; }
-	void Release() { if (--m_nReferences <= 0) delete this; }
-	void ReleaseUploadBuffers();
+	int RefCount{};
 protected:
-	ID3D12Resource* m_pd3dVertexBuffer{};
-	ID3D12Resource* m_pd3dVertexUploadBuffer{};
-	D3D12_VERTEX_BUFFER_VIEW m_d3dVertexBufferView{};
-	D3D12_PRIMITIVE_TOPOLOGY m_d3dPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-	UINT m_nSlot{};
-	UINT m_nVertices{};
-	UINT m_nStride{};
-	UINT m_nOffset{};
+	ID3D12Resource* VertexBuffer{};
+	ID3D12Resource* VertexUploadBuffer{};
+
+	D3D12_VERTEX_BUFFER_VIEW VertexBufferView{};
+	D3D12_PRIMITIVE_TOPOLOGY PrimitiveTopology{ D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST };
+
+	UINT StartSlot{};
+	UINT NumOfVertex{};
+	UINT VertexSize{};
+	UINT Offset{};
 public:
+	CMesh(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
+	virtual ~CMesh();
+
+	void AddRef() { ++RefCount; }
+	void Release() { if (--RefCount <= 0) delete this; }
+	void ReleaseUploadBuffers();
+
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList);
 };
 
 class CTriangleMesh : public CMesh
 {
 public:
-	CTriangleMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
+	CTriangleMesh(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList);
 	virtual ~CTriangleMesh() = default;
 };

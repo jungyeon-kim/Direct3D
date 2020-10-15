@@ -7,7 +7,7 @@
 
 #define MAX_LOADSTRING 100
 
-CGameFramework gGameFramework;
+CGameFramework GameFramework;
 
 // 전역 변수:
 HINSTANCE hInst;                                // 현재 인스턴스입니다.
@@ -36,10 +36,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	MyRegisterClass(hInstance);
 
 	// 애플리케이션 초기화를 수행합니다:
-	if (!InitInstance(hInstance, nCmdShow))
-	{
-		return FALSE;
-	}
+	if (!InitInstance(hInstance, nCmdShow)) return FALSE;
 
 	HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_MYPROJECT));
 
@@ -48,21 +45,19 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	// 기본 메시지 루프입니다:
 	while (1)
 	{
-		if (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			if (msg.message == WM_QUIT) break;
-			if (!::TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+			if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
 			{
-				::TranslateMessage(&msg);
-				::DispatchMessage(&msg);
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
 			}
 		}
-		else
-		{
-			gGameFramework.Tick();
-		}
+		else GameFramework.Tick();
 	}
-	gGameFramework.Destroy();
+
+	GameFramework.Destroy();
 
 	return (int)msg.wParam;
 }
@@ -109,10 +104,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, NULL, NULL, hInstance, NULL);
 	if (!hMainWnd) return(FALSE);
 
-	gGameFramework.Init(hInstance, hMainWnd);
+	GameFramework.Init(hInstance, hMainWnd);
 
-	::ShowWindow(hMainWnd, nCmdShow);
-	::UpdateWindow(hMainWnd);
+	ShowWindow(hMainWnd, nCmdShow);
+	UpdateWindow(hMainWnd);
 
 	return TRUE;
 }
@@ -139,7 +134,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_MOUSEMOVE:
 	case WM_KEYDOWN:
 	case WM_KEYUP:
-		gGameFramework.ProcessWindowMsg(hWnd, message, wParam, lParam);
+		GameFramework.ProcessWindowMsg(hWnd, message, wParam, lParam);
 		break;
 	case WM_DESTROY:
 		::PostQuitMessage(0);

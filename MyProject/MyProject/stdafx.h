@@ -44,51 +44,45 @@
 #define WINDOW_HEIGHT 600
 // 종횡비
 #define ASPECT_RATIO (float(WINDOW_WIDTH) / float(WINDOW_HEIGHT))
-// 정점의 색상을 무작위로(Random) 설정하기 위해 사용한다. 각 정점의 색상은 난수(Random Number)를 생성하여 지정한다.
+// 정점의 색상을 무작위로(Random) 설정하기 위해 사용한다. 각 정점의 색상은 난수(Random Number)를 생성하여 지정
 #define RANDOM_COLOR XMFLOAT4(rand() / float(RAND_MAX), rand() / float(RAND_MAX), rand() / float(RAND_MAX), rand() / float(RAND_MAX))
-
-#define _WITH_SWAPCHAIN_FULLSCREEN_STATE
 
 using namespace DirectX;
 using namespace DirectX::PackedVector;
 using Microsoft::WRL::ComPtr;
 
 extern ID3D12Resource* CreateBufferResource(
-	ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, 
-	void* pData, UINT nBytes, D3D12_HEAP_TYPE d3dHeapType = D3D12_HEAP_TYPE_UPLOAD, 
-	D3D12_RESOURCE_STATES d3dResourceStates = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, 
-	ID3D12Resource** ppd3dUploadBuffer = NULL);
+	ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList, 
+	void* Data, UINT NumOfByte, D3D12_HEAP_TYPE HeapType = D3D12_HEAP_TYPE_UPLOAD, 
+	D3D12_RESOURCE_STATES ResourceStates = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, 
+	ID3D12Resource** UploadBuffer = NULL);
 
 //3차원 벡터의 연산
 namespace Vector3
 {
-	inline XMFLOAT3 XMVectorToFloat3(XMVECTOR& xmvVector)
+	inline XMFLOAT3 XMVectorToFloat3(const XMVECTOR& xmvVector)
 	{
 		XMFLOAT3 xmf3Result;
 		XMStoreFloat3(&xmf3Result, xmvVector);
 		return xmf3Result;
 	}
-	inline XMFLOAT3 ScalarProduct(XMFLOAT3& xmf3Vector, float fScalar, bool bNormalize = true)
+	inline XMFLOAT3 ScalarProduct(const XMFLOAT3& xmf3Vector, float fScalar, bool bNormalize = true)
 	{
 		XMFLOAT3 xmf3Result;
-		if (bNormalize)
-			XMStoreFloat3(&xmf3Result, XMVector3Normalize(XMLoadFloat3(&xmf3Vector)) * fScalar);
-		else
-			XMStoreFloat3(&xmf3Result, XMLoadFloat3(&xmf3Vector) * fScalar);
+		if (bNormalize) XMStoreFloat3(&xmf3Result, XMVector3Normalize(XMLoadFloat3(&xmf3Vector)) * fScalar);
+		else XMStoreFloat3(&xmf3Result, XMLoadFloat3(&xmf3Vector) * fScalar);
 		return xmf3Result;
 	}
 	inline XMFLOAT3 Add(const XMFLOAT3& xmf3Vector1, const XMFLOAT3& xmf3Vector2)
 	{
 		XMFLOAT3 xmf3Result;
-		XMStoreFloat3(&xmf3Result, XMLoadFloat3(&xmf3Vector1) +
-			XMLoadFloat3(&xmf3Vector2));
+		XMStoreFloat3(&xmf3Result, XMLoadFloat3(&xmf3Vector1) + XMLoadFloat3(&xmf3Vector2));
 		return xmf3Result;
 	}
 	inline XMFLOAT3 Add(const XMFLOAT3& xmf3Vector1, const XMFLOAT3& xmf3Vector2, float fScalar)
 	{
 		XMFLOAT3 xmf3Result;
-		XMStoreFloat3(&xmf3Result, XMLoadFloat3(&xmf3Vector1) + (XMLoadFloat3(&xmf3Vector2)
-			* fScalar));
+		XMStoreFloat3(&xmf3Result, XMLoadFloat3(&xmf3Vector1) + (XMLoadFloat3(&xmf3Vector2) * fScalar));
 		return xmf3Result;
 	}
 	inline XMFLOAT3 Subtract(const XMFLOAT3 xmf3Vector1, const XMFLOAT3 xmf3Vector2)
@@ -109,19 +103,17 @@ namespace Vector3
 		XMStoreFloat3(&xmf3Result, XMVectorMultiply(XMLoadFloat3(&xmf3Vector), XMVECTOR{ -1.0f, -1.0f, -1.0f, 1.0f }));
 		return xmf3Result;
 	}
-	inline float DotProduct(XMFLOAT3& xmf3Vector1, XMFLOAT3& xmf3Vector2)
+	inline float DotProduct(const XMFLOAT3& xmf3Vector1, const XMFLOAT3& xmf3Vector2)
 	{
 		XMFLOAT3 xmf3Result;
 		XMStoreFloat3(&xmf3Result, XMVector3Dot(XMLoadFloat3(&xmf3Vector1), XMLoadFloat3(&xmf3Vector2)));
 		return xmf3Result.x;
 	}
-	inline XMFLOAT3 CrossProduct(XMFLOAT3& xmf3Vector1, XMFLOAT3& xmf3Vector2, bool bNormalize = true)
+	inline XMFLOAT3 CrossProduct(const XMFLOAT3& xmf3Vector1, const XMFLOAT3& xmf3Vector2, bool bNormalize = true)
 	{
 		XMFLOAT3 xmf3Result;
-		if (bNormalize)
-			XMStoreFloat3(&xmf3Result, XMVector3Normalize(XMVector3Cross(XMLoadFloat3(&xmf3Vector1), XMLoadFloat3(&xmf3Vector2))));
-		else
-			XMStoreFloat3(&xmf3Result, XMVector3Cross(XMLoadFloat3(&xmf3Vector1), XMLoadFloat3(&xmf3Vector2)));
+		if (bNormalize) XMStoreFloat3(&xmf3Result, XMVector3Normalize(XMVector3Cross(XMLoadFloat3(&xmf3Vector1), XMLoadFloat3(&xmf3Vector2))));
+		else XMStoreFloat3(&xmf3Result, XMVector3Cross(XMLoadFloat3(&xmf3Vector1), XMLoadFloat3(&xmf3Vector2)));
 		return xmf3Result;
 	}
 	inline XMFLOAT3 Normalize(const XMFLOAT3& xmf3Vector)
@@ -130,7 +122,7 @@ namespace Vector3
 		XMStoreFloat3(&m_xmf3Normal, XMVector3Normalize(XMLoadFloat3(&xmf3Vector)));
 		return m_xmf3Normal;
 	}
-	inline float Length(XMFLOAT3& xmf3Vector)
+	inline float Length(const XMFLOAT3& xmf3Vector)
 	{
 		XMFLOAT3 xmf3Result;
 		XMStoreFloat3(&xmf3Result, XMVector3Length(XMLoadFloat3(&xmf3Vector)));
@@ -145,7 +137,7 @@ namespace Vector3
 	{
 		return Angle(XMLoadFloat3(&xmf3Vector1), XMLoadFloat3(&xmf3Vector2));
 	}
-	inline XMFLOAT3 TransformNormal(XMFLOAT3& xmf3Vector, XMMATRIX& xmmtxTransform)
+	inline XMFLOAT3 TransformNormal(const XMFLOAT3& xmf3Vector, const XMMATRIX& xmmtxTransform)
 	{
 		XMFLOAT3 xmf3Result;
 		XMStoreFloat3(&xmf3Result, XMVector3TransformNormal(XMLoadFloat3(&xmf3Vector), xmmtxTransform));
@@ -157,7 +149,7 @@ namespace Vector3
 		XMStoreFloat3(&xmf3Result, XMVector3TransformCoord(XMLoadFloat3(&xmf3Vector), xmmtxTransform));
 		return xmf3Result;
 	}
-	inline XMFLOAT3 TransformCoord(XMFLOAT3& xmf3Vector, XMFLOAT4X4& xmmtx4x4Matrix)
+	inline XMFLOAT3 TransformCoord(const XMFLOAT3& xmf3Vector, const XMFLOAT4X4& xmmtx4x4Matrix)
 	{
 		return TransformCoord(xmf3Vector, XMLoadFloat4x4(&xmmtx4x4Matrix));
 	}
@@ -171,13 +163,13 @@ namespace Vector4
 		XMStoreFloat4(&xmf4Result, XMLoadFloat4(&xmf4Vector1) + XMLoadFloat4(&xmf4Vector2));
 		return xmf4Result;
 	}
-	inline XMFLOAT4 Multiply(XMFLOAT4& xmf4Vector1, XMFLOAT4& xmf4Vector2)
+	inline XMFLOAT4 Multiply(const XMFLOAT4& xmf4Vector1, const XMFLOAT4& xmf4Vector2)
 	{
 		XMFLOAT4 xmf4Result;
 		XMStoreFloat4(&xmf4Result, XMLoadFloat4(&xmf4Vector1) * XMLoadFloat4(&xmf4Vector2));
 		return xmf4Result;
 	}
-	inline XMFLOAT4 Multiply(float fScalar, XMFLOAT4& xmf4Vector)
+	inline XMFLOAT4 Multiply(float fScalar, const XMFLOAT4& xmf4Vector)
 	{
 		XMFLOAT4 xmf4Result;
 		XMStoreFloat4(&xmf4Result, fScalar * XMLoadFloat4(&xmf4Vector));
@@ -193,38 +185,37 @@ namespace Matrix4x4
 		XMStoreFloat4x4(&xmmtx4x4Result, XMMatrixIdentity());
 		return xmmtx4x4Result;
 	}
-	inline XMFLOAT4X4 Multiply(XMFLOAT4X4& xmmtx4x4Matrix1, XMFLOAT4X4& xmmtx4x4Matrix2)
+	inline XMFLOAT4X4 Multiply(const XMFLOAT4X4& xmmtx4x4Matrix1, const XMFLOAT4X4& xmmtx4x4Matrix2)
 	{
 		XMFLOAT4X4 xmmtx4x4Result;
 		XMStoreFloat4x4(&xmmtx4x4Result, XMLoadFloat4x4(&xmmtx4x4Matrix1) * XMLoadFloat4x4(&xmmtx4x4Matrix2));
 		return xmmtx4x4Result;
 	}
-	inline XMFLOAT4X4 Multiply(XMFLOAT4X4& xmmtx4x4Matrix1, XMMATRIX& xmmtxMatrix2)
+	inline XMFLOAT4X4 Multiply(const XMFLOAT4X4& xmmtx4x4Matrix1, const XMMATRIX& xmmtxMatrix2)
 	{
 		XMFLOAT4X4 xmmtx4x4Result;
 		XMStoreFloat4x4(&xmmtx4x4Result, XMLoadFloat4x4(&xmmtx4x4Matrix1) * xmmtxMatrix2);
 		return xmmtx4x4Result;
 	}
-	inline XMFLOAT4X4 Multiply(XMMATRIX& xmmtxMatrix1, XMFLOAT4X4& xmmtx4x4Matrix2)
+	inline XMFLOAT4X4 Multiply(const XMMATRIX& xmmtxMatrix1, const XMFLOAT4X4& xmmtx4x4Matrix2)
 	{
 		XMFLOAT4X4 xmmtx4x4Result;
 		XMStoreFloat4x4(&xmmtx4x4Result, xmmtxMatrix1 * XMLoadFloat4x4(&xmmtx4x4Matrix2));
 		return xmmtx4x4Result;
 	}
-	inline XMFLOAT4X4 Inverse(XMFLOAT4X4& xmmtx4x4Matrix)
+	inline XMFLOAT4X4 Inverse(const XMFLOAT4X4& xmmtx4x4Matrix)
 	{
 		XMFLOAT4X4 xmmtx4x4Result;
 		XMStoreFloat4x4(&xmmtx4x4Result, XMMatrixInverse(NULL, XMLoadFloat4x4(&xmmtx4x4Matrix)));
 		return xmmtx4x4Result;
 	}
-	inline XMFLOAT4X4 Transpose(XMFLOAT4X4& xmmtx4x4Matrix)
+	inline XMFLOAT4X4 Transpose(const XMFLOAT4X4& xmmtx4x4Matrix)
 	{
 		XMFLOAT4X4 xmmtx4x4Result;
 		XMStoreFloat4x4(&xmmtx4x4Result, XMMatrixTranspose(XMLoadFloat4x4(&xmmtx4x4Matrix)));
 		return xmmtx4x4Result;
 	}
-	inline XMFLOAT4X4 PerspectiveFovLH(float FovAngleY, float AspectRatio, float NearZ,
-		float FarZ)
+	inline XMFLOAT4X4 PerspectiveFovLH(float FovAngleY, float AspectRatio, float NearZ, float FarZ)
 	{
 		XMFLOAT4X4 xmmtx4x4Result;
 		XMStoreFloat4x4(&xmmtx4x4Result, XMMatrixPerspectiveFovLH(FovAngleY, AspectRatio, NearZ, FarZ));
@@ -234,7 +225,7 @@ namespace Matrix4x4
 		const XMFLOAT3& xmf3UpDirection)
 	{
 		XMFLOAT4X4 xmmtx4x4Result;
-		XMStoreFloat4x4(&xmmtx4x4Result, XMMatrixLookAtLH(XMLoadFloat3(&xmf3EyePosition),
+		XMStoreFloat4x4(&xmmtx4x4Result, XMMatrixLookAtLH(XMLoadFloat3(&xmf3EyePosition), 
 			XMLoadFloat3(&xmf3LookAtPosition), XMLoadFloat3(&xmf3UpDirection)));
 		return xmmtx4x4Result;
 	}

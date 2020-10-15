@@ -354,7 +354,7 @@ void CGameFramework::ProcessInput()
 
 void CGameFramework::Animate()
 {
-	if (Scene) Scene->Animate(Timer.GetTimeElapsed());
+	if (Scene) Scene->Animate(Timer.GetElapsedTime());
 }
 
 void CGameFramework::Tick()
@@ -426,7 +426,7 @@ void CGameFramework::Tick()
 	SwapChain->Present(0, 0);
 	CurFrameBufferIdx = SwapChain->GetCurrentBackBufferIndex();
 
-	// ??
+	// GPU가 프레젠트를 끝낼 때까지 기다림
 	WaitForGpuComplete();
 
 	Timer.GetFrameRate(FrameRate + 11, 37); 

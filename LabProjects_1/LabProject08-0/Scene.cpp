@@ -102,7 +102,7 @@ ID3D12RootSignature *CScene::CreateGraphicsRootSignature(ID3D12Device *pd3dDevic
 	d3dSamplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
 	d3dSamplerDesc.MinLOD = 0;
 	d3dSamplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
-	d3dSamplerDesc.ShaderRegister = 0;
+	d3dSamplerDesc.ShaderRegister = 0;	// s0: sampler
 	d3dSamplerDesc.RegisterSpace = 0;
 	d3dSamplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 

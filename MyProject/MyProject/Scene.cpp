@@ -3,32 +3,32 @@
 #include "GameTimer.h"
 #include "Shader.h"
 
-void CScene::AddObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
+void CScene::AddObjects(ID3D12Device* Device, ID3D12GraphicsCommandList* CommandList)
 {
-	//그래픽 루트 시그너쳐를 생성한다. 
-	m_pd3dGraphicsRootSignature = CreateGraphicsRootSignature(pd3dDevice);
+	// 루트 시그니쳐를 생성 
+	RootSignature = CreateRootSignature(Device);
 
-	//씬을 그리기 위한 셰이더 객체를 생성한다. 
-	m_nShaders = 1;
-	m_ppShaders = new CShader*[m_nShaders];
-	CShader* pShader{ new CShader() };
-	pShader->CreateShader(pd3dDevice, m_pd3dGraphicsRootSignature);
-	pShader->AddObjects(pd3dDevice, pd3dCommandList, NULL);
-	m_ppShaders[0] = pShader;
+	// 셰이더 생성
+	NumOfShader = 1;
+	Shaders = new CShader*[NumOfShader];
+	CShader* Shader{ new CShader() };
+	Shader->CreatePipelineState(Device, RootSignature);
+	Shader->AddObjects(Device, CommandList, NULL);
+	Shaders[0] = Shader;
 }
 
 void CScene::ReleaseObjects()
 {
-	if (m_pd3dGraphicsRootSignature) m_pd3dGraphicsRootSignature->Release();
-	if (m_ppShaders)
+	if (RootSignature) RootSignature->Release();
+	if (Shaders)
 	{
-		for (int i = 0; i < m_nShaders; i++)
+		for (int i = 0; i < NumOfShader; ++i)
 		{
-			m_ppShaders[i]->ReleaseShaderVariables();
-			m_ppShaders[i]->ReleaseObjects();
-			m_ppShaders[i]->Release();
+			Shaders[i]->ReleaseShaderVariables();
+			Shaders[i]->ReleaseObjects();
+			Shaders[i]->Release();
 		}
-		delete[] m_ppShaders;
+		delete[] Shaders;
 	}
 }
 
@@ -47,55 +47,51 @@ bool CScene::ProcessInput()
 	return false;
 }
 
-void CScene::Animate(float fTimeElapsed) 
+void CScene::Animate(float ElapsedTime) 
 { 
-	for (int i = 0; i < m_nShaders; i++) m_ppShaders[i]->Animate(fTimeElapsed);
+	for (int i = 0; i < NumOfShader; ++i) Shaders[i]->Animate(ElapsedTime);
 }
 
-void CScene::Render(ID3D12GraphicsCommandList* pd3dCommandList)
+void CScene::Render(ID3D12GraphicsCommandList* CommandList)
 {
-	//그래픽 루트 시그너쳐를 파이프라인에 연결(설정)한다. 
-	pd3dCommandList->SetGraphicsRootSignature(m_pd3dGraphicsRootSignature);
-	//씬을 렌더링하는 것은 씬을 구성하는 셰이더(셰이더가 포함하는 객체)들을 렌더링하는 것이다. 
-	for (int i = 0; i < m_nShaders; i++)
-	{
-		m_ppShaders[i]->Render(pd3dCommandList);
-	}
+	// 루트 시그니쳐를 파이프라인에 Set
+	CommandList->SetGraphicsRootSignature(RootSignature);
+	// 씬을 렌더링하는 것은 씬을 구성하는 셰이더(셰이더가 포함하는 객체)들을 렌더링하는 것
+	for (int i = 0; i < NumOfShader; ++i) Shaders[i]->Render(CommandList);
 }
 
 void CScene::ReleaseUploadBuffers()
 {
-	if (m_ppShaders)
-		for (int j = 0; j < m_nShaders; j++)
-			if (m_ppShaders[j])
-				m_ppShaders[j]->ReleaseUploadBuffers();
+	if (Shaders)
+		for (int i = 0; i < NumOfShader; ++i)
+			if (Shaders[i])
+				Shaders[i]->ReleaseUploadBuffers();
 }
 
-ID3D12RootSignature* CScene::GetGraphicsRootSignature()
+ID3D12RootSignature* CScene::GetRootSignature()
 {
-	return m_pd3dGraphicsRootSignature;
+	return RootSignature;
 }
 
-ID3D12RootSignature* CScene::CreateGraphicsRootSignature(ID3D12Device* pd3dDevice)
+ID3D12RootSignature* CScene::CreateRootSignature(ID3D12Device* Device)
 {
-	ID3D12RootSignature* pd3dGraphicsRootSignature{};
+	ID3D12RootSignature* RootSignature{};
 
-	//매개변수가 없는(빈) 루트 시그너쳐를 생성한다. 
-	D3D12_ROOT_SIGNATURE_DESC d3dRootSignatureDesc;
-	::ZeroMemory(&d3dRootSignatureDesc, sizeof(D3D12_ROOT_SIGNATURE_DESC));
-	d3dRootSignatureDesc.NumParameters = 0;
-	d3dRootSignatureDesc.pParameters = NULL;
-	d3dRootSignatureDesc.NumStaticSamplers = 0;
-	d3dRootSignatureDesc.pStaticSamplers = NULL;
-	d3dRootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+	// 루트 파라미터가 없는(빈) 루트 시그너쳐 생성
+	D3D12_ROOT_SIGNATURE_DESC RootSignatureDesc{};
+	RootSignatureDesc.NumParameters = 0;
+	RootSignatureDesc.pParameters = NULL;
+	RootSignatureDesc.NumStaticSamplers = 0;
+	RootSignatureDesc.pStaticSamplers = NULL;
+	RootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
-	ID3DBlob* pd3dSignatureBlob{};
-	ID3DBlob* pd3dErrorBlob{};
-	::D3D12SerializeRootSignature(&d3dRootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &pd3dSignatureBlob, &pd3dErrorBlob);
-	pd3dDevice->CreateRootSignature(0, pd3dSignatureBlob->GetBufferPointer(),
-		pd3dSignatureBlob->GetBufferSize(), __uuidof(ID3D12RootSignature), (void**)&pd3dGraphicsRootSignature);
-	if (pd3dSignatureBlob) pd3dSignatureBlob->Release();
-	if (pd3dErrorBlob) pd3dErrorBlob->Release();
+	ID3DBlob* SignatureBlob{};
+	ID3DBlob* ErrorBlob{};
+	D3D12SerializeRootSignature(&RootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &SignatureBlob, &ErrorBlob);
+	Device->CreateRootSignature(0, SignatureBlob->GetBufferPointer(),
+		SignatureBlob->GetBufferSize(), __uuidof(ID3D12RootSignature), (void**)&RootSignature);
+	if (SignatureBlob) SignatureBlob->Release();
+	if (ErrorBlob) ErrorBlob->Release();
 
-	return pd3dGraphicsRootSignature;
+	return RootSignature;
 }
