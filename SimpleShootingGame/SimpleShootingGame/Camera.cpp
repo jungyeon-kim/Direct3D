@@ -144,7 +144,7 @@ void CSpaceShipCamera::Rotate(float x, float y, float z)
 	{
 		XMFLOAT3 xmf3Look{ m_pPlayer->GetLookVector() };
 		XMMATRIX xmmtxRotate{ XMMatrixRotationAxis(XMLoadFloat3(&xmf3Look), XMConvertToRadians(z)) };
-
+		
 		m_xmf3Right = Vector3::TransformNormal(m_xmf3Right, xmmtxRotate);
 		m_xmf3Up = Vector3::TransformNormal(m_xmf3Up, xmmtxRotate);
 		m_xmf3Look = Vector3::TransformNormal(m_xmf3Look, xmmtxRotate);

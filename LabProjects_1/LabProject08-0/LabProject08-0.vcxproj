@@ -23,7 +23,7 @@
     <ProjectGuid>{1FD89798-74FC-4724-9BF8-777E9592C588}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>LabProject080</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>LabProject08-0(DDS Texture)</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
