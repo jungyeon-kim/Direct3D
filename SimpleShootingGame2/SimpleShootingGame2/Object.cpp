@@ -1,4 +1,4 @@
-//-----------------------------------------------------------------------------
+﻿//-----------------------------------------------------------------------------
 // File: CGameObject.cpp
 //-----------------------------------------------------------------------------
 
@@ -297,13 +297,27 @@ CGameObject::CGameObject()
 	m_xmf4x4World = Matrix4x4::Identity();
 }
 
-CGameObject::CGameObject(int nMaterials) : CGameObject()
+CGameObject::CGameObject(int nMaterials, bool isMesh) : CGameObject()
 {
-	m_nMaterials = nMaterials;
-	if (m_nMaterials > 0)
+	if (!isMesh)
 	{
-		m_ppMaterials = new CMaterial*[m_nMaterials];
-		for(int i = 0; i < m_nMaterials; i++) m_ppMaterials[i] = NULL;
+		m_nMaterials = nMaterials;
+		if (m_nMaterials > 0)
+		{
+			m_ppMaterials = new CMaterial * [m_nMaterials];
+			for (int i = 0; i < m_nMaterials; i++) m_ppMaterials[i] = NULL;
+		}
+	}
+	else
+	{
+		m_xmf4x4World = Matrix4x4::Identity();
+		m_nMeshes = nMaterials;
+		m_ppMeshes = NULL;
+		if (m_nMeshes > 0)
+		{
+			m_ppMeshes = new CMesh * [m_nMeshes];
+			for (int i = 0; i < m_nMeshes; i++) m_ppMeshes[i] = NULL;
+		}
 	}
 }
 
@@ -359,6 +373,16 @@ void CGameObject::SetMesh(CMesh *pMesh)
 	if (m_pMesh) m_pMesh->Release();
 	m_pMesh = pMesh;
 	if (m_pMesh) m_pMesh->AddRef();
+}
+
+void CGameObject::SetMesh(int nIndex, CMesh* pMesh)
+{
+	if (m_ppMeshes)
+	{
+		if (m_ppMeshes[nIndex]) m_ppMeshes[nIndex]->Release();
+		m_ppMeshes[nIndex] = pMesh;
+		if (pMesh) pMesh->AddRef();
+	}
 }
 
 void CGameObject::SetShader(CShader *pShader)
@@ -418,6 +442,13 @@ void CGameObject::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pC
 			}
 
 			if (m_pMesh) m_pMesh->Render(pd3dCommandList, i);
+		}
+	}
+	if (m_ppMeshes)
+	{
+		for (int i = 0; i < m_nMeshes; i++)
+		{
+			if (m_ppMeshes[i]) m_ppMeshes[i]->Render(pd3dCommandList, 0);
 		}
 	}
 	if (m_pSibling) m_pSibling->Render(pd3dCommandList, pCamera);
@@ -934,4 +965,50 @@ void CMi24Object::Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent)
 	CGameObject::Animate(fTimeElapsed, pxmf4x4Parent);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+CHeightMapTerrain::CHeightMapTerrain(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList
+	* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature, LPCTSTR pFileName, int
+	nWidth, int nLength, int nBlockWidth, int nBlockLength, XMFLOAT3 xmf3Scale, XMFLOAT4
+	xmf4Color) : CGameObject(0, true)
+{
+	m_nWidth = nWidth;
+	m_nLength = nLength;
 
+	int cxQuadsPerBlock = nBlockWidth - 1;
+	int czQuadsPerBlock = nBlockLength - 1;
+	m_xmf3Scale = xmf3Scale;
+
+	m_pHeightMapImage = new CHeightMapImage(pFileName, nWidth, nLength, xmf3Scale);
+
+	long cxBlocks = (m_nWidth - 1) / cxQuadsPerBlock;
+	long czBlocks = (m_nLength - 1) / czQuadsPerBlock;
+
+	m_nMeshes = cxBlocks * czBlocks;
+	m_ppMeshes = new CMesh*[m_nMeshes];
+
+	for (int i = 0; i < m_nMeshes; i++)m_ppMeshes[i] = NULL;
+
+	CHeightMapGridMesh* pHeightMapGridMesh = NULL;
+
+	for (int z = 0, zStart = 0; z < czBlocks; z++)
+	{
+		for (int x = 0, xStart = 0; x < cxBlocks; x++)
+		{
+			xStart = x * (nBlockWidth - 1);
+			zStart = z * (nBlockLength - 1);
+
+			pHeightMapGridMesh = new CHeightMapGridMesh(pd3dDevice, pd3dCommandList, xStart,
+			zStart, nBlockWidth, nBlockLength, xmf3Scale, xmf4Color, m_pHeightMapImage);
+			SetMesh(x + (z * cxBlocks), pHeightMapGridMesh);
+		}
+	}
+
+	CTerrainShader *pShader = new CTerrainShader();
+	pShader->CreateShader(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
+	SetShader(pShader);
+}
+CHeightMapTerrain::~CHeightMapTerrain(void)
+{
+	if (m_pHeightMapImage) delete m_pHeightMapImage;
+}
