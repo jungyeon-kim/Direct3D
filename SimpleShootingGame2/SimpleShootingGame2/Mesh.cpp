@@ -1,4 +1,4 @@
-//-----------------------------------------------------------------------------
+﻿//-----------------------------------------------------------------------------
 // File: CGameObject.cpp
 //-----------------------------------------------------------------------------
 
@@ -659,4 +659,89 @@ XMFLOAT4 CHeightMapGridMesh::OnGetColor(int x, int z, void* pContext)
 
 	XMFLOAT4 xmf4Color = Vector4::Multiply(fScale, xmf4IncidentLightColor);
 	return(xmf4Color);
+}
+
+////////////////////////////////////////////////////////////////////////////////////
+
+CSphereMesh::CSphereMesh(ID3D12Device* pd3dDevice,
+	ID3D12GraphicsCommandList* pd3dCommandList, float fRadius, int nSlices, int nStacks) :
+	CMesh(pd3dDevice, pd3dCommandList)
+{
+	m_nSubMeshes = 1;
+	m_nStride = sizeof(CDiffusedVertex);
+	m_d3dPrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+	m_nVertices = 2 + (nSlices * (nStacks - 1));
+	m_pVertices = new CDiffusedVertex[m_nVertices];
+
+	float fDeltaPhi{ float(XM_PI / nStacks) };
+	float fDeltaTheta{ float((2.0f * XM_PI) / nSlices) };
+	int k{};
+
+	m_pVertices[k++] = CDiffusedVertex(0.0f, +fRadius, 0.0f, XMFLOAT4{0.0f, 0.0f, 0.0f, 1.0f});
+	float theta_i{}, phi_j{};
+
+	for (int j = 1; j < nStacks; j++)
+	{
+		phi_j = fDeltaPhi * j;
+		for (int i = 0; i < nSlices; i++)
+		{
+			theta_i = fDeltaTheta * i;
+			m_pVertices[k++] = CDiffusedVertex(fRadius * sinf(phi_j) * cosf(theta_i),
+				fRadius * cosf(phi_j), fRadius * sinf(phi_j) * sinf(theta_i), XMFLOAT4{ 0.0f, 0.0f, 0.0f, 1.0f });
+		}
+	}
+
+	m_pVertices[k] = CDiffusedVertex(0.0f, -fRadius, 0.0f, XMFLOAT4{ 0.0f, 0.0f, 0.0f, 1.0f });
+	m_pd3dVertexBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, m_pVertices,
+		m_nStride * m_nVertices, D3D12_HEAP_TYPE_DEFAULT,
+		D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_pd3dVertexUploadBuffer);
+	m_d3dVertexBufferView.BufferLocation = m_pd3dVertexBuffer->GetGPUVirtualAddress();
+	m_d3dVertexBufferView.StrideInBytes = m_nStride;
+	m_d3dVertexBufferView.SizeInBytes = m_nStride * m_nVertices;
+
+	m_nIndices = (nSlices * 3) * 2 + (nSlices * (nStacks - 2) * 3 * 2);
+	m_pnIndices = new UINT[m_nIndices];
+	k = 0;
+
+	for (int i = 0; i < nSlices; i++)
+	{
+		m_pnIndices[k++] = 0;
+		m_pnIndices[k++] = 1 + ((i + 1) % nSlices);
+		m_pnIndices[k++] = 1 + i;
+	}
+
+	for (int j = 0; j < nStacks - 2; j++)
+	{
+		for (int i = 0; i < nSlices; i++)
+		{
+			m_pnIndices[k++] = 1 + (i + (j * nSlices));
+			m_pnIndices[k++] = 1 + (((i + 1) % nSlices) + (j * nSlices));
+			m_pnIndices[k++] = 1 + (i + ((j + 1) * nSlices));
+			m_pnIndices[k++] = 1 + (i + ((j + 1) * nSlices));
+			m_pnIndices[k++] = 1 + (((i + 1) % nSlices) + (j * nSlices));
+			m_pnIndices[k++] = 1 + (((i + 1) % nSlices) + ((j + 1) * nSlices));
+		}
+	}
+
+	for (int i = 0; i < nSlices; i++)
+	{
+		m_pnIndices[k++] = (m_nVertices - 1);
+		m_pnIndices[k++] = ((m_nVertices - 1) - nSlices) + i;
+		m_pnIndices[k++] = ((m_nVertices - 1) - nSlices) + ((i + 1) % nSlices);
+	}
+
+	m_pd3dIndexBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, m_pnIndices,
+		sizeof(UINT) * m_nIndices, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_INDEX_BUFFER,
+		&m_pd3dIndexUploadBuffer);
+	m_d3dIndexBufferView.BufferLocation = m_pd3dIndexBuffer->GetGPUVirtualAddress();
+	m_d3dIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
+	m_d3dIndexBufferView.SizeInBytes = sizeof(UINT) * m_nIndices;
+
+	m_xmBoundingBox = BoundingOrientedBox(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(fRadius * 5.0f,
+		fRadius * 5.0f, fRadius * 5.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+}
+
+CSphereMesh::~CSphereMesh()
+{
 }

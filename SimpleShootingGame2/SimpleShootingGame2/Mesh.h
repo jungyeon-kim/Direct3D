@@ -99,9 +99,12 @@ protected:
 	ID3D12Resource					**m_ppd3dSubSetIndexBuffers = NULL;
 	ID3D12Resource					**m_ppd3dSubSetIndexUploadBuffers = NULL;
 	D3D12_INDEX_BUFFER_VIEW			*m_pd3dSubSetIndexBufferViews = NULL;
-
+	
+	BoundingOrientedBox				m_xmBoundingBox{};
 public:
 	UINT GetType() { return(m_nType); }
+
+	BoundingOrientedBox GetBoundingBox() const { return m_xmBoundingBox; }
 
 	virtual void ReleaseUploadBuffers();
 	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, int nSubSet);
@@ -218,4 +221,15 @@ public:
 	int GetLength() { return(m_nLength); }
 	virtual float OnGetHeight(int x, int z, void *pContext);
 	virtual XMFLOAT4 OnGetColor(int x, int z, void *pContext);
+};
+
+class CSphereMesh : public CMesh
+{
+private:
+	CDiffusedVertex* m_pVertices{};
+	UINT* m_pnIndices{};
+public:
+	CSphereMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList,
+		float fRadius = 2.0f, int nSlices = 20, int nStacks = 20);
+	virtual ~CSphereMesh();
 };

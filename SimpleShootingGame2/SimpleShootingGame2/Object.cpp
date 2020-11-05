@@ -451,6 +451,7 @@ void CGameObject::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pC
 			if (m_ppMeshes[i]) m_ppMeshes[i]->Render(pd3dCommandList, 0);
 		}
 	}
+	if (m_pMesh) m_pMesh->Render(pd3dCommandList, 0);
 	if (m_pSibling) m_pSibling->Render(pd3dCommandList, pCamera);
 	if (m_pChild) m_pChild->Render(pd3dCommandList, pCamera);
 }
@@ -565,6 +566,12 @@ void CGameObject::MoveForward(float fDistance)
 	CGameObject::SetPosition(xmf3Position);
 }
 
+void CGameObject::Move(XMFLOAT3& vDirection, float fSpeed)
+{
+	SetPosition(m_xmf4x4World._41 + vDirection.x * fSpeed, m_xmf4x4World._42 + vDirection.y * fSpeed,
+		m_xmf4x4World._43 + vDirection.z * fSpeed);
+}
+
 void CGameObject::Rotate(float fPitch, float fYaw, float fRoll)
 {
 	XMMATRIX mtxRotate = XMMatrixRotationRollPitchYaw(XMConvertToRadians(fPitch), XMConvertToRadians(fYaw), XMConvertToRadians(fRoll));
@@ -615,6 +622,11 @@ int CGameObject::FindReplicatedTexture(_TCHAR* pstrTextureName, D3D12_GPU_DESCRI
 	if (m_pChild) if ((nParameterIndex = m_pChild->FindReplicatedTexture(pstrTextureName, pd3dSrvGpuDescriptorHandle)) > 0) return(nParameterIndex);
 
 	return(nParameterIndex);
+}
+
+BoundingOrientedBox CGameObject::GetBoundingBox() const
+{
+	return m_pMesh ? m_pMesh->GetBoundingBox() : BoundingOrientedBox{};
 }
 
 void CGameObject::LoadMaterialsFromFile(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, CGameObject *pParent, FILE *pInFile, CShader *pShader)
@@ -828,6 +840,22 @@ CGameObject *CGameObject::LoadGeometryFromFile(ID3D12Device *pd3dDevice, ID3D12G
 #endif
 
 	return(pGameObject);
+}
+
+CBaseObject::CBaseObject()
+{
+	m_xmf3RotationAxis = XMFLOAT3(0.0f, 1.0f, 0.0f);
+	m_fRotationSpeed = 90.0f;
+}
+
+CBaseObject::~CBaseObject()
+{
+}
+
+void CBaseObject::Animate(float fTimeElapsed)
+{
+	if (m_fRotationSpeed) CGameObject::Rotate(&m_xmf3RotationAxis, m_fRotationSpeed * fTimeElapsed);
+	if (m_fMovingSpeed) CGameObject::Move(m_xmf3MovingDirection, m_fMovingSpeed * fTimeElapsed);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////

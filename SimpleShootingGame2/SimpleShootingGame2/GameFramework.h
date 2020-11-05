@@ -31,6 +31,7 @@ public:
     void ReleaseObjects();
 
     void ProcessInput();
+	void ProcessCollision();
     void AnimateObjects();
     void FrameAdvance();
 

@@ -89,25 +89,13 @@ void CPlayer::Rotate(float x, float y, float z)
 	DWORD nCurrentCameraMode = m_pCamera->GetMode();
 	if ((nCurrentCameraMode == FIRST_PERSON_CAMERA) || (nCurrentCameraMode == THIRD_PERSON_CAMERA))
 	{
+		m_pCamera->Rotate(x, y, z);
 		if (x != 0.0f)
 		{
-			m_fPitch += x;
-			if (m_fPitch > +89.0f) { x -= (m_fPitch - 89.0f); m_fPitch = +89.0f; }
-			if (m_fPitch < -89.0f) { x -= (m_fPitch + 89.0f); m_fPitch = -89.0f; }
+			XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Right), XMConvertToRadians(x));
+			m_xmf3Look = Vector3::TransformNormal(m_xmf3Look, xmmtxRotate);
+			m_xmf3Up = Vector3::TransformNormal(m_xmf3Up, xmmtxRotate);
 		}
-		if (y != 0.0f)
-		{
-			m_fYaw += y;
-			if (m_fYaw > 360.0f) m_fYaw -= 360.0f;
-			if (m_fYaw < 0.0f) m_fYaw += 360.0f;
-		}
-		if (z != 0.0f)
-		{
-			m_fRoll += z;
-			if (m_fRoll > +20.0f) { z -= (m_fRoll - 20.0f); m_fRoll = +20.0f; }
-			if (m_fRoll < -20.0f) { z -= (m_fRoll + 20.0f); m_fRoll = -20.0f; }
-		}
-		m_pCamera->Rotate(x, y, z);
 		if (y != 0.0f)
 		{
 			XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Up), XMConvertToRadians(y));
@@ -236,6 +224,8 @@ void CPlayer::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamer
 		if (m_pShader) m_pShader->Render(pd3dCommandList, pCamera, 0);
 		CGameObject::Render(pd3dCommandList, pCamera);
 	}
+
+	if (BulletShader) BulletShader->Render(pd3dCommandList, pCamera);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -255,6 +245,9 @@ CAirplanePlayer::CAirplanePlayer(ID3D12Device *pd3dDevice, ID3D12GraphicsCommand
 	PrepareAnimate();
 
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
+
+	BulletShader = new CBulletsShader{};
+	BulletShader->CreateShader(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
 }
 
 CAirplanePlayer::~CAirplanePlayer()
@@ -281,6 +274,7 @@ void CAirplanePlayer::Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent)
 	}
 
 	CPlayer::Animate(fTimeElapsed, pxmf4x4Parent);
+	BulletShader->AnimateObjects(fTimeElapsed);
 }
 
 void CAirplanePlayer::OnPrepareRender()
@@ -297,7 +291,7 @@ CCamera *CAirplanePlayer::ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed)
 		case FIRST_PERSON_CAMERA:
 			SetFriction(2.0f);
 			SetGravity(XMFLOAT3(0.0f, 0.0f, 0.0f));
-			SetMaxVelocityXZ(2.5f);
+			SetMaxVelocityXZ(20.0f);
 			SetMaxVelocityY(40.0f);
 			m_pCamera = OnChangeCamera(FIRST_PERSON_CAMERA, nCurrentCameraMode);
 			m_pCamera->SetTimeLag(0.0f);
@@ -321,8 +315,8 @@ CCamera *CAirplanePlayer::ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed)
 		case THIRD_PERSON_CAMERA:
 			SetFriction(20.5f);
 			SetGravity(XMFLOAT3(0.0f, 0.0f, 0.0f));
-			SetMaxVelocityXZ(25.5f);
-			SetMaxVelocityY(20.0f);
+			SetMaxVelocityXZ(50.0f);
+			SetMaxVelocityY(50.0f);
 			m_pCamera = OnChangeCamera(THIRD_PERSON_CAMERA, nCurrentCameraMode);
 			m_pCamera->SetTimeLag(0.25f);
 			m_pCamera->SetOffset(XMFLOAT3(0.0f, 15.0f, -30.0f));
@@ -339,3 +333,7 @@ CCamera *CAirplanePlayer::ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed)
 	return(m_pCamera);
 }
 
+void CAirplanePlayer::Shot(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
+{
+	BulletShader->BuildObjects(m_xmf3Position, m_xmf3Look, pd3dDevice, pd3dCommandList);
+}

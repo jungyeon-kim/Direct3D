@@ -60,6 +60,8 @@ public:
 	ID3D12RootSignature *GetGraphicsRootSignature() { return(m_pd3dGraphicsRootSignature); }
 
 	bool ProcessInput(UCHAR *pKeysBuffer);
+	bool IsCollided(const BoundingOrientedBox& Lhs, const BoundingOrientedBox& Rhs);
+	void ProcessCollision();
     void AnimateObjects(float fTimeElapsed);
     void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera=NULL);
 

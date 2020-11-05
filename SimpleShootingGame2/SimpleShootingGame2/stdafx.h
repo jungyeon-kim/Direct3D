@@ -20,8 +20,10 @@
 #include <wrl.h>
 #include <shellapi.h>
 
+#include <iostream>
 #include <fstream>
 #include <vector>
+#include <memory>
 
 using namespace std;
 
@@ -37,6 +39,12 @@ using namespace std;
 
 #ifdef _DEBUG
 #include <dxgidebug.h>
+#endif
+
+#ifdef UNICODE
+#pragma comment(linker, "/entry:wWinMainCRTStartup /subsystem:console")
+#else
+#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")
 #endif
 
 using namespace DirectX;

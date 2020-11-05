@@ -130,6 +130,8 @@ public:
 
 	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera, int nPipelineState=0);
 
+	CGameObject** GetObjects() const { return m_ppObjects; }
+	int GetNumOfObjects() const { return m_nObjects; }
 protected:
 	CGameObject						**m_ppObjects = 0;
 	int								m_nObjects = 0;
@@ -162,4 +164,31 @@ public:
 	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
 	virtual D3D12_SHADER_BYTECODE CreatePixelShader();
 	virtual void CreateShader(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature);
+};
+
+class CBulletsShader : public CShader
+{
+protected:
+	std::vector<std::unique_ptr<CBaseObject>> Bullets{};
+public:
+	CBulletsShader();
+	virtual ~CBulletsShader();
+
+	virtual void BuildObjects(XMFLOAT3& xmf3Position, XMFLOAT3& xmf3Look, ID3D12Device* pd3dDevice,
+		ID3D12GraphicsCommandList* pd3dCommandList);
+	virtual void AnimateObjects(float fTimeElapsed);
+	virtual void ReleaseObjects();
+
+	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
+	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
+	virtual D3D12_SHADER_BYTECODE CreatePixelShader();
+	virtual void CreateShader(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature);
+
+	virtual void ReleaseUploadBuffers();
+
+	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);
+
+	void ReleaseBullet(int Idx);
+	const std::vector<std::unique_ptr<CBaseObject>>& GetBullets() const { return Bullets; }
+	size_t GetNumOfBullets() const { return Bullets.size(); }
 };

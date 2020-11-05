@@ -214,6 +214,7 @@ public:
 	void MoveStrafe(float fDistance = 1.0f);
 	void MoveUp(float fDistance = 1.0f);
 	void MoveForward(float fDistance = 1.0f);
+	void Move(XMFLOAT3& vDirection, float fSpeed);
 
 	void Rotate(float fPitch = 10.0f, float fYaw = 10.0f, float fRoll = 10.0f);
 	void Rotate(XMFLOAT3 *pxmf3Axis, float fAngle);
@@ -227,6 +228,9 @@ public:
 
 	UINT GetMeshType() { return((m_pMesh) ? m_pMesh->GetType() : 0x00); }
 
+	BoundingOrientedBox GetBoundingBox() const;
+	XMFLOAT4X4 GetWorldMatrix() const { return m_xmf4x4World; }
+
 public:
 	void LoadMaterialsFromFile(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, CGameObject *pParent, FILE *pInFile, CShader *pShader);
 
@@ -234,6 +238,31 @@ public:
 	static CGameObject *LoadGeometryFromFile(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, ID3D12RootSignature *pd3dGraphicsRootSignature, char *pstrFileName, CShader *pShader);
 
 	static void PrintFrameInfo(CGameObject *pGameObject, CGameObject *pParent);
+};
+
+class CBaseObject : public CGameObject
+{
+private:
+	XMFLOAT3 m_xmf3MovingDirection{};
+	float m_fMovingSpeed{};
+
+	XMFLOAT3 m_xmf3RotationAxis{};
+	float m_fRotationSpeed{};
+public:
+	CBaseObject();
+	virtual ~CBaseObject();
+
+	XMFLOAT3 GetMovingDirection() const { return m_xmf3MovingDirection; }
+	XMFLOAT3 GetRotationAxis() const { return m_xmf3RotationAxis; }
+
+	void SetMovingDirection(const XMFLOAT3& xmf3MovingDirection)
+	{
+		XMStoreFloat3(&m_xmf3MovingDirection, XMVector3Normalize(XMLoadFloat3(&xmf3MovingDirection)));
+	}
+	void SetMovingSpeed(float fSpeed) { m_fMovingSpeed = fSpeed; }
+	void SetRotationSpeed(float fRotationSpeed) { m_fRotationSpeed = fRotationSpeed; }
+	void SetRotationAxis(XMFLOAT3 xmf3RotationAxis) { m_xmf3RotationAxis = xmf3RotationAxis; }
+	virtual void Animate(float fTimeElapsed);
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

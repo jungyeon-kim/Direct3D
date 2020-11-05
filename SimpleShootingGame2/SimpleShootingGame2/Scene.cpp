@@ -365,12 +365,12 @@ bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 	case WM_KEYDOWN:
 		switch (wParam)
 		{
-		case 'W': m_ppGameObjects[0]->MoveForward(+1.0f); break;
-		case 'S': m_ppGameObjects[0]->MoveForward(-1.0f); break;
-		case 'A': m_ppGameObjects[0]->MoveStrafe(-1.0f); break;
-		case 'D': m_ppGameObjects[0]->MoveStrafe(+1.0f); break;
-		case 'Q': m_ppGameObjects[0]->MoveUp(+1.0f); break;
-		case 'R': m_ppGameObjects[0]->MoveUp(-1.0f); break;
+		//case 'W': m_ppGameObjects[0]->MoveForward(+1.0f); break;
+		//case 'S': m_ppGameObjects[0]->MoveForward(-1.0f); break;
+		//case 'A': m_ppGameObjects[0]->MoveStrafe(-1.0f); break;
+		//case 'D': m_ppGameObjects[0]->MoveStrafe(+1.0f); break;
+		//case 'Q': m_ppGameObjects[0]->MoveUp(+1.0f); break;
+		//case 'R': m_ppGameObjects[0]->MoveUp(-1.0f); break;
 		default:
 			break;
 		}
@@ -384,6 +384,37 @@ bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 bool CScene::ProcessInput(UCHAR *pKeysBuffer)
 {
 	return(false);
+}
+
+bool CScene::IsCollided(const BoundingOrientedBox& Lhs, const BoundingOrientedBox& Rhs)
+{
+	return Lhs.Contains(Rhs) != ContainmentType::DISJOINT;
+}
+
+void CScene::ProcessCollision()
+{
+	if (!m_ppShaders || !m_pPlayer->GetBulletShader()) return;
+
+	static const auto ObjectShader{ dynamic_cast<CObjectsShader*>(m_ppShaders[0]) };
+	static const auto Objects{ ObjectShader->GetObjects() };
+	static const auto BulletShader{ m_pPlayer->GetBulletShader() };
+	static const auto& Bullets{ BulletShader->GetBullets() };
+
+	for (int i = 0; i < ObjectShader->GetNumOfObjects(); ++i)
+	{
+		for (int j = 0; j < BulletShader->GetNumOfBullets(); ++j)
+		{
+			BoundingOrientedBox LeftBox{ Objects[i]->GetBoundingBox() };
+			BoundingOrientedBox RightBox{ Bullets[j]->GetBoundingBox() };
+
+			LeftBox.Transform(LeftBox, XMLoadFloat4x4(&Objects[i]->GetWorldMatrix()));
+			RightBox.Transform(RightBox, XMLoadFloat4x4(&Bullets[j]->GetWorldMatrix()));
+
+			if (IsCollided(LeftBox, RightBox))
+			{
+			}
+		}
+	}
 }
 
 void CScene::AnimateObjects(float fTimeElapsed)

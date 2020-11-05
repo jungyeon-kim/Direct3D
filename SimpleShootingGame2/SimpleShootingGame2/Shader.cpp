@@ -275,7 +275,6 @@ void CShader::CreateShaderResourceView(ID3D12Device* pd3dDevice, CTexture* pText
 void CShader::OnPrepareRender(ID3D12GraphicsCommandList *pd3dCommandList, int nPipelineState)
 {
 	if (m_ppd3dPipelineStates) pd3dCommandList->SetPipelineState(m_ppd3dPipelineStates[nPipelineState]);
-
 	if (m_pd3dCbvSrvDescriptorHeap) pd3dCommandList->SetDescriptorHeaps(1, &m_pd3dCbvSrvDescriptorHeap);
 }
 
@@ -623,4 +622,97 @@ void CTerrainShader::CreateShader(ID3D12Device* pd3dDevice, ID3D12GraphicsComman
 	if (m_pd3dPixelShaderBlob) m_pd3dPixelShaderBlob->Release();
 
 	if (m_d3dPipelineStateDesc.InputLayout.pInputElementDescs) delete[] m_d3dPipelineStateDesc.InputLayout.pInputElementDescs;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+CBulletsShader::CBulletsShader()
+{
+}
+
+CBulletsShader::~CBulletsShader()
+{
+}
+
+D3D12_INPUT_LAYOUT_DESC CBulletsShader::CreateInputLayout()
+{
+	UINT nInputElementDescs{ 2 };
+	D3D12_INPUT_ELEMENT_DESC* pd3dInputElementDescs{ new D3D12_INPUT_ELEMENT_DESC[nInputElementDescs] };
+
+	pd3dInputElementDescs[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
+	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[1] = { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12,
+	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+
+	D3D12_INPUT_LAYOUT_DESC d3dInputLayoutDesc;
+	d3dInputLayoutDesc.pInputElementDescs = pd3dInputElementDescs;
+	d3dInputLayoutDesc.NumElements = nInputElementDescs;
+
+	return d3dInputLayoutDesc;
+}
+
+D3D12_SHADER_BYTECODE CBulletsShader::CreateVertexShader()
+{
+	return CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSDiffused", "vs_5_1", &m_pd3dVertexShaderBlob);
+}
+
+D3D12_SHADER_BYTECODE CBulletsShader::CreatePixelShader()
+{
+	return CShader::CompileShaderFromFile(L"Shaders.hlsl", "PSDiffused", "ps_5_1", &m_pd3dPixelShaderBlob);
+}
+
+void CBulletsShader::CreateShader(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature)
+{
+	m_nPipelineStates = 1;
+	m_ppd3dPipelineStates = new ID3D12PipelineState * [m_nPipelineStates];
+	CShader::CreateShader(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
+
+	if (m_pd3dVertexShaderBlob) m_pd3dVertexShaderBlob->Release();
+	if (m_pd3dPixelShaderBlob) m_pd3dPixelShaderBlob->Release();
+
+	if (m_d3dPipelineStateDesc.InputLayout.pInputElementDescs) delete[] m_d3dPipelineStateDesc.InputLayout.pInputElementDescs;
+}
+
+void CBulletsShader::BuildObjects(XMFLOAT3& xmf3Position, XMFLOAT3& xmf3Look, ID3D12Device* pd3dDevice,
+	ID3D12GraphicsCommandList* pd3dCommandList)
+{
+	CSphereMesh* pSphereMesh{ new CSphereMesh(pd3dDevice, pd3dCommandList, 1.0f, 15, 15) };
+
+	Bullets.emplace_back();
+	Bullets.back() = std::make_unique<CBaseObject>();
+	Bullets.back()->SetMesh(pSphereMesh);
+	Bullets.back()->SetPosition(xmf3Position);
+	Bullets.back()->SetMovingDirection(xmf3Look);
+	Bullets.back()->SetMovingSpeed(800.0f);
+	Bullets.back()->SetRotationAxis(XMFLOAT3(1.0f, 1.0f, 1.0f));
+	Bullets.back()->SetRotationSpeed(10.0f * float(rand() % 5 + 1));
+
+	CreateShaderVariables(pd3dDevice, pd3dCommandList);
+}
+
+void CBulletsShader::ReleaseObjects()
+{
+	Bullets.clear();
+}
+
+void CBulletsShader::AnimateObjects(float fTimeElapsed)
+{
+	for (const auto& Bullet : Bullets) Bullet->Animate(fTimeElapsed);
+}
+
+void CBulletsShader::ReleaseUploadBuffers()
+{
+	for (const auto& Bullet : Bullets) Bullet->ReleaseUploadBuffers();
+}
+
+void CBulletsShader::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
+{
+	CShader::Render(pd3dCommandList, pCamera);
+
+	for (const auto& Bullet : Bullets) Bullet->Render(pd3dCommandList, pCamera);
+}
+
+void CBulletsShader::ReleaseBullet(int Idx)
+{
+	Bullets.erase(std::remove(Bullets.begin(), Bullets.end(), Bullets[Idx]), Bullets.end());
 }

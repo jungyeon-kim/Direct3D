@@ -328,6 +328,10 @@ void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPA
 					break;
 				case VK_F5:
 					break;
+				case VK_CONTROL:
+					m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
+					dynamic_cast<CAirplanePlayer*>(m_pPlayer)->Shot(m_pd3dDevice, m_pd3dCommandList);
+					break;
 				default:
 					break;
 			}
@@ -464,10 +468,15 @@ void CGameFramework::ProcessInput()
 				else
 					m_pPlayer->Rotate(cyDelta, cxDelta, 0.0f);
 			}
-			if (dwDirection) m_pPlayer->Move(dwDirection, 1.25f, true);
+			if (dwDirection) m_pPlayer->Move(dwDirection, 20.0f, true);
 		}
 	}
 	m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
+}
+
+void CGameFramework::ProcessCollision()
+{
+	m_pScene->ProcessCollision();
 }
 
 void CGameFramework::AnimateObjects()
@@ -513,7 +522,7 @@ void CGameFramework::FrameAdvance()
 	m_GameTimer.Tick(0.0f);
 	
 	ProcessInput();
-
+	ProcessCollision();
     AnimateObjects();
 
 	HRESULT hResult = m_pd3dCommandAllocator->Reset();

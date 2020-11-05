@@ -35,6 +35,7 @@ protected:
 
 	CShader						*m_pShader = NULL;
 
+	class CBulletsShader*		BulletShader{};
 public:
 	CPlayer();
 	virtual ~CPlayer();
@@ -43,6 +44,8 @@ public:
 	XMFLOAT3 GetLookVector() { return(m_xmf3Look); }
 	XMFLOAT3 GetUpVector() { return(m_xmf3Up); }
 	XMFLOAT3 GetRightVector() { return(m_xmf3Right); }
+
+	CBulletsShader* GetBulletShader() const { return BulletShader; }
 
 	void SetFriction(float fFriction) { m_fFriction = fFriction; }
 	void SetGravity(const XMFLOAT3& xmf3Gravity) { m_xmf3Gravity = xmf3Gravity; }
@@ -99,6 +102,8 @@ private:
 public:
 	virtual CCamera *ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed);
 	virtual void OnPrepareRender();
+
+	void Shot(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
 };
 
 
