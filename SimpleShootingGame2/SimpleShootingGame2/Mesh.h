@@ -25,7 +25,7 @@
 
 class CVertex
 {
-protected:
+public:
 	XMFLOAT3 m_xmf3Position;
 public:
 	CVertex() = default;
@@ -232,4 +232,47 @@ public:
 	CSphereMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList,
 		float fRadius = 2.0f, int nSlices = 20, int nStacks = 20);
 	virtual ~CSphereMesh();
+};
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class CRawFormatImage
+{
+protected:
+	BYTE* m_pRawImagePixels = NULL;
+
+	int							m_nWidth;
+	int							m_nLength;
+
+public:
+	CRawFormatImage(LPCTSTR pFileName, int nWidth, int nLength, bool bFlipY = false);
+	~CRawFormatImage(void);
+
+	BYTE GetRawImagePixel(int x, int z) { return(m_pRawImagePixels[x + (z * m_nWidth)]); }
+	void SetRawImagePixel(int x, int z, BYTE nPixel) { m_pRawImagePixels[x + (z * m_nWidth)] = nPixel; }
+
+	BYTE* GetRawImagePixels() { return(m_pRawImagePixels); }
+
+	int GetRawImageWidth() { return(m_nWidth); }
+	int GetRawImageLength() { return(m_nLength); }
+};
+
+class CGeometryBillboardVertex : public CVertex
+{
+public:
+	XMFLOAT2						m_xmf2Size;
+	UINT							m_nTexture;
+
+public:
+	CGeometryBillboardVertex() { m_xmf3Position = XMFLOAT3(0.0f, 0.0f, 0.0f); m_xmf2Size = XMFLOAT2(5.0f, 10.0f); m_nTexture = 0; }
+	CGeometryBillboardVertex(float x, float y, float z, XMFLOAT2 xmf2Size = XMFLOAT2(5.0f, 10.0f), UINT nTexture = 0) { m_xmf3Position = XMFLOAT3(x, y, z); m_xmf2Size = xmf2Size; m_nTexture = nTexture; }
+	CGeometryBillboardVertex(XMFLOAT3 xmf3Position, XMFLOAT2 xmf2Size = XMFLOAT2(5.0f, 10.0f), UINT nTexture = 0) { m_xmf3Position = xmf3Position; m_xmf2Size = xmf2Size; m_nTexture = nTexture; }
+	~CGeometryBillboardVertex() { }
+};
+
+class CGeometryBillboardMesh : public CMesh
+{
+public:
+	CGeometryBillboardMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, CGeometryBillboardVertex* pGeometryBillboardVertices, UINT nGeometryBillboardVertices);
+	virtual ~CGeometryBillboardMesh();
 };

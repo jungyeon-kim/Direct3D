@@ -79,6 +79,7 @@ public:
 	int									m_nShaders = 0;
 	CShader								**m_ppShaders = NULL;
 	CShader								*m_pTerrainShader = NULL;
+	CShader								*m_pBillboardShader = NULL;
 
 	CSkyBox								*m_pSkyBox = NULL;
 

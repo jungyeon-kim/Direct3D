@@ -745,3 +745,58 @@ CSphereMesh::CSphereMesh(ID3D12Device* pd3dDevice,
 CSphereMesh::~CSphereMesh()
 {
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+CRawFormatImage::CRawFormatImage(LPCTSTR pFileName, int nWidth, int nLength, bool bFlipY)
+{
+	m_nWidth = nWidth;
+	m_nLength = nLength;
+
+	BYTE* pRawImagePixels = new BYTE[m_nWidth * m_nLength];
+
+	HANDLE hFile = ::CreateFile(pFileName, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_ATTRIBUTE_READONLY, NULL);
+	DWORD dwBytesRead;
+	::ReadFile(hFile, pRawImagePixels, (m_nWidth * m_nLength), &dwBytesRead, NULL);
+	::CloseHandle(hFile);
+
+	if (bFlipY)
+	{
+		m_pRawImagePixels = new BYTE[m_nWidth * m_nLength];
+		for (int z = 0; z < m_nLength; z++)
+		{
+			for (int x = 0; x < m_nWidth; x++)
+			{
+				m_pRawImagePixels[x + ((m_nLength - 1 - z) * m_nWidth)] = pRawImagePixels[x + (z * m_nWidth)];
+			}
+		}
+
+		if (pRawImagePixels) delete[] pRawImagePixels;
+	}
+	else
+	{
+		m_pRawImagePixels = pRawImagePixels;
+	}
+}
+
+CRawFormatImage::~CRawFormatImage()
+{
+	if (m_pRawImagePixels) delete[] m_pRawImagePixels;
+	m_pRawImagePixels = NULL;
+}
+
+CGeometryBillboardMesh::CGeometryBillboardMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, CGeometryBillboardVertex* pGeometryBillboardVertices, UINT nGeometryBillboardVertices) : CMesh(pd3dDevice, pd3dCommandList)
+{
+	m_nVertices = nGeometryBillboardVertices;
+	m_nStride = sizeof(CGeometryBillboardVertex);
+	m_d3dPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
+	m_pd3dVertexBuffer = CreateBufferResource(pd3dDevice, pd3dCommandList, pGeometryBillboardVertices, m_nStride * m_nVertices, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_pd3dVertexUploadBuffer);
+
+	m_d3dVertexBufferView.BufferLocation = m_pd3dVertexBuffer->GetGPUVirtualAddress();
+	m_d3dVertexBufferView.StrideInBytes = m_nStride;
+	m_d3dVertexBufferView.SizeInBytes = m_nStride * m_nVertices;
+}
+
+CGeometryBillboardMesh::~CGeometryBillboardMesh()
+{
+}
