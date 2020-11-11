@@ -401,6 +401,8 @@ void CScene::AnimateObjects(float fTimeElapsed)
 	for (int i = 0; i < m_nGameObjects; i++) if (m_ppGameObjects[i]) m_ppGameObjects[i]->UpdateTransform(NULL);
 
 	for (int i = 0; i < m_nShaders; i++) if (m_ppShaders[i]) m_ppShaders[i]->AnimateObjects(fTimeElapsed);
+
+	if (m_pPlaneShader) m_pPlaneShader->AnimateObjects(fTimeElapsed);
 	
 	if (m_pLights)
 	{

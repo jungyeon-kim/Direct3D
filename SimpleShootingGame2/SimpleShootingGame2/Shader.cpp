@@ -951,12 +951,22 @@ CPlaneShader::~CPlaneShader()
 void CPlaneShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature, void* pContext)
 {
 	Texture = new CTexture(1, RESOURCE_TEXTURE2D, 0, 1);
-	Texture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Terrain/Lava.dds", RESOURCE_TEXTURE2D, 0);
+	Texture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Terrain/Water.dds", RESOURCE_TEXTURE2D, 0);
+
+	CreateCbvSrvDescriptorHeaps(pd3dDevice, 0, 1);
+	CreateShaderResourceViews(pd3dDevice, Texture, 0, 3);
+
+	CMaterial* pMaterials;
+	pMaterials = new CMaterial();
+	pMaterials->SetTexture(Texture);
 
 	CPlaneMesh* pPlaneMesh{ new CPlaneMesh(pd3dDevice, pd3dCommandList, 2000.0f, 2000.0f) };
 	Plane = new CBaseObject{};
+	Plane->m_ppMaterials = new CMaterial*[1];
+	Plane->m_ppMaterials[0] = nullptr;
 	Plane->SetMesh(pPlaneMesh);
-	Plane->SetPosition(XMFLOAT3{ 1000.0f, 130.0f, 1000.0f });
+	Plane->SetMaterial(0, pMaterials);
+	Plane->SetPosition(XMFLOAT3{ 1000.0f, Height, 1000.0f });
 
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 }
@@ -966,31 +976,41 @@ void CPlaneShader::ReleaseObjects()
 	Plane->Release();
 }
 
+void CPlaneShader::AnimateObjects(float fTimeElapsed)
+{
+	static float Angle{};
+	static XMFLOAT3 Axis{ 0.0f, 0.0f, 1.0f };
+
+	Angle += XMConvertToRadians(0.5f);
+	float value{ sinf(Angle) };
+
+	Plane->SetPosition(Vector3::Add(Plane->GetPosition(), XMFLOAT3{ value / 3.0f, 0.0f, 0.0f }));
+	Plane->Rotate(&Axis, value / 200.0f);
+}
+
 D3D12_INPUT_LAYOUT_DESC CPlaneShader::CreateInputLayout()
 {
-	UINT nInputElementDescs{ 2 };
-	D3D12_INPUT_ELEMENT_DESC* pd3dInputElementDescs{ new D3D12_INPUT_ELEMENT_DESC[nInputElementDescs] };
+	UINT nInputElementDescs = 2;
+	D3D12_INPUT_ELEMENT_DESC* pd3dInputElementDescs = new D3D12_INPUT_ELEMENT_DESC[nInputElementDescs];
 
-	pd3dInputElementDescs[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
-	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
-	pd3dInputElementDescs[1] = { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12,
-	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[1] = { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
 
 	D3D12_INPUT_LAYOUT_DESC d3dInputLayoutDesc;
 	d3dInputLayoutDesc.pInputElementDescs = pd3dInputElementDescs;
 	d3dInputLayoutDesc.NumElements = nInputElementDescs;
 
-	return d3dInputLayoutDesc;
+	return(d3dInputLayoutDesc);
 }
 
 D3D12_SHADER_BYTECODE CPlaneShader::CreateVertexShader()
 {
-	return CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSDiffused", "vs_5_1", &m_pd3dVertexShaderBlob);
+	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSTextured", "vs_5_1", &m_pd3dVertexShaderBlob));
 }
 
 D3D12_SHADER_BYTECODE CPlaneShader::CreatePixelShader()
 {
-	return CShader::CompileShaderFromFile(L"Shaders.hlsl", "PSDiffused", "ps_5_1", &m_pd3dPixelShaderBlob);
+	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "PSTextured", "ps_5_1", &m_pd3dPixelShaderBlob));
 }
 
 void CPlaneShader::CreateShader(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature, D3D12_PRIMITIVE_TOPOLOGY_TYPE pd3dType)
@@ -1013,6 +1033,7 @@ void CPlaneShader::ReleaseUploadBuffers()
 void CPlaneShader::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, int nPipelineState)
 {
 	CShader::Render(pd3dCommandList, pCamera);
-
+	pd3dCommandList->SetGraphicsRootDescriptorTable(
+		Texture->m_pnRootParameterIndices[0], Texture->m_pd3dSrvGpuDescriptorHandles[0]);
 	Plane->Render(pd3dCommandList, pCamera);
 }
