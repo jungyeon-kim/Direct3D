@@ -800,3 +800,44 @@ CGeometryBillboardMesh::CGeometryBillboardMesh(ID3D12Device* pd3dDevice, ID3D12G
 CGeometryBillboardMesh::~CGeometryBillboardMesh()
 {
 }
+
+CPlaneMesh::CPlaneMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, float fWidth, float fDepth)
+	: CMesh(pd3dDevice, pd3dCommandList)
+{
+	m_nSubMeshes = 1;
+
+	m_nVertices = 4;
+	m_nStride = sizeof(CDiffusedVertex);
+	m_d3dPrimitiveTopology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	float fx = fWidth * 0.5f, fz = fDepth * 0.5f;
+
+	CDiffusedVertex pVertices[4];
+	pVertices[0] = CDiffusedVertex(XMFLOAT3(-fx, 0.0f, -fz), RANDOM_COLOR);
+	pVertices[1] = CDiffusedVertex(XMFLOAT3(+fx, 0.0f, -fz), RANDOM_COLOR);
+	pVertices[2] = CDiffusedVertex(XMFLOAT3(+fx, 0.0f, +fz), RANDOM_COLOR);
+	pVertices[3] = CDiffusedVertex(XMFLOAT3(-fx, 0.0f, +fz), RANDOM_COLOR);
+
+	m_pd3dVertexBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, pVertices,
+		m_nStride * m_nVertices, D3D12_HEAP_TYPE_DEFAULT,
+		D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, &m_pd3dVertexUploadBuffer);
+
+	m_d3dVertexBufferView.BufferLocation = m_pd3dVertexBuffer->GetGPUVirtualAddress();
+	m_d3dVertexBufferView.StrideInBytes = m_nStride;
+	m_d3dVertexBufferView.SizeInBytes = m_nStride * m_nVertices;
+
+	m_nIndices = 6;
+	UINT pnIndices[6];
+	pnIndices[0] = 3; pnIndices[1] = 1; pnIndices[2] = 0;
+	pnIndices[3] = 2; pnIndices[4] = 1; pnIndices[5] = 3;
+
+	m_pd3dIndexBuffer = ::CreateBufferResource(pd3dDevice, pd3dCommandList, pnIndices, sizeof(UINT) * m_nIndices,
+		D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_INDEX_BUFFER, &m_pd3dIndexUploadBuffer);
+
+	m_d3dIndexBufferView.BufferLocation = m_pd3dIndexBuffer->GetGPUVirtualAddress();
+	m_d3dIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
+	m_d3dIndexBufferView.SizeInBytes = sizeof(UINT) * m_nIndices;
+}
+
+CPlaneMesh::~CPlaneMesh()
+{
+}

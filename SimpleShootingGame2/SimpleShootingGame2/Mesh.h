@@ -234,6 +234,14 @@ public:
 	virtual ~CSphereMesh();
 };
 
+class CPlaneMesh : public CMesh
+{
+public:
+	CPlaneMesh(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList,
+		float fWidth = 20.0f, float fDepth = 20.0f);
+	virtual ~CPlaneMesh();
+};
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class CRawFormatImage

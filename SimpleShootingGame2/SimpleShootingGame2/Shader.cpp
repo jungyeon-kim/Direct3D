@@ -937,3 +937,82 @@ void CBillboardObjectsShader::Render(ID3D12GraphicsCommandList* pd3dCommandList,
 	m_pBillboardTexture->UpdateShaderVariables(pd3dCommandList);
 	m_pGeometryBillboardMesh->Render(pd3dCommandList, 0);
 }
+
+//////////////////////////////////////////////////////////////////////////////
+
+CPlaneShader::CPlaneShader()
+{
+}
+
+CPlaneShader::~CPlaneShader()
+{
+}
+
+void CPlaneShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature, void* pContext)
+{
+	Texture = new CTexture(1, RESOURCE_TEXTURE2D, 0, 1);
+	Texture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Terrain/Lava.dds", RESOURCE_TEXTURE2D, 0);
+
+	CPlaneMesh* pPlaneMesh{ new CPlaneMesh(pd3dDevice, pd3dCommandList, 2000.0f, 2000.0f) };
+	Plane = new CBaseObject{};
+	Plane->SetMesh(pPlaneMesh);
+	Plane->SetPosition(XMFLOAT3{ 1000.0f, 130.0f, 1000.0f });
+
+	CreateShaderVariables(pd3dDevice, pd3dCommandList);
+}
+
+void CPlaneShader::ReleaseObjects()
+{
+	Plane->Release();
+}
+
+D3D12_INPUT_LAYOUT_DESC CPlaneShader::CreateInputLayout()
+{
+	UINT nInputElementDescs{ 2 };
+	D3D12_INPUT_ELEMENT_DESC* pd3dInputElementDescs{ new D3D12_INPUT_ELEMENT_DESC[nInputElementDescs] };
+
+	pd3dInputElementDescs[0] = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
+	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	pd3dInputElementDescs[1] = { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12,
+	D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+
+	D3D12_INPUT_LAYOUT_DESC d3dInputLayoutDesc;
+	d3dInputLayoutDesc.pInputElementDescs = pd3dInputElementDescs;
+	d3dInputLayoutDesc.NumElements = nInputElementDescs;
+
+	return d3dInputLayoutDesc;
+}
+
+D3D12_SHADER_BYTECODE CPlaneShader::CreateVertexShader()
+{
+	return CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSDiffused", "vs_5_1", &m_pd3dVertexShaderBlob);
+}
+
+D3D12_SHADER_BYTECODE CPlaneShader::CreatePixelShader()
+{
+	return CShader::CompileShaderFromFile(L"Shaders.hlsl", "PSDiffused", "ps_5_1", &m_pd3dPixelShaderBlob);
+}
+
+void CPlaneShader::CreateShader(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature, D3D12_PRIMITIVE_TOPOLOGY_TYPE pd3dType)
+{
+	m_nPipelineStates = 1;
+	m_ppd3dPipelineStates = new ID3D12PipelineState * [m_nPipelineStates];
+	CShader::CreateShader(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
+
+	if (m_pd3dVertexShaderBlob) m_pd3dVertexShaderBlob->Release();
+	if (m_pd3dPixelShaderBlob) m_pd3dPixelShaderBlob->Release();
+
+	if (m_d3dPipelineStateDesc.InputLayout.pInputElementDescs) delete[] m_d3dPipelineStateDesc.InputLayout.pInputElementDescs;
+}
+
+void CPlaneShader::ReleaseUploadBuffers()
+{
+	Plane->ReleaseUploadBuffers();
+}
+
+void CPlaneShader::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, int nPipelineState)
+{
+	CShader::Render(pd3dCommandList, pCamera);
+
+	Plane->Render(pd3dCommandList, pCamera);
+}
