@@ -960,13 +960,13 @@ void CPlaneShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandL
 	pMaterials = new CMaterial();
 	pMaterials->SetTexture(Texture);
 
-	CPlaneMesh* pPlaneMesh{ new CPlaneMesh(pd3dDevice, pd3dCommandList, 2000.0f, 2000.0f) };
+	CPlaneMesh* pPlaneMesh{ new CPlaneMesh(pd3dDevice, pd3dCommandList, 4000.0f, 4000.0f) };
 	Plane = new CBaseObject{};
 	Plane->m_ppMaterials = new CMaterial*[1];
 	Plane->m_ppMaterials[0] = nullptr;
 	Plane->SetMesh(pPlaneMesh);
 	Plane->SetMaterial(0, pMaterials);
-	Plane->SetPosition(XMFLOAT3{ 1000.0f, Height, 1000.0f });
+	Plane->SetPosition(XMFLOAT3{ 2000.0f, Height, 2000.0f });
 
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 }
