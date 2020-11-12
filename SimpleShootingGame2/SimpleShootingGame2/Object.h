@@ -153,6 +153,7 @@ class CGameObject
 private:
 	int								m_nReferences = 0;
 	class CBillboardParticleShader	* m_pBillboardParticleShader = NULL;
+	bool isAttacked{};
 public:
 	void AddRef();
 	void Release();
@@ -210,6 +211,9 @@ public:
 	XMFLOAT3 GetUp();
 	XMFLOAT3 GetRight();
 
+	bool GetIsAttacked() const { return isAttacked; }
+	void SetIsAttacked(bool NewIsAttacked) { isAttacked = NewIsAttacked; }
+
 	void SetPosition(float x, float y, float z);
 	void SetPosition(XMFLOAT3 xmf3Position);
 	void SetScale(float x, float y, float z);
@@ -221,6 +225,8 @@ public:
 
 	void Rotate(float fPitch = 10.0f, float fYaw = 10.0f, float fRoll = 10.0f);
 	void Rotate(XMFLOAT3 *pxmf3Axis, float fAngle);
+	void Rotate(XMFLOAT3* Vector);
+	void Rotate(XMFLOAT4X4& Matrix);
 	void Rotate(XMFLOAT4 *pxmf4Quaternion);
 
 	CGameObject *GetParent() { return(m_pParent); }

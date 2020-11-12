@@ -594,6 +594,21 @@ void CGameObject::Rotate(XMFLOAT3 *pxmf3Axis, float fAngle)
 	UpdateTransform(NULL);
 }
 
+void CGameObject::Rotate(XMFLOAT3* Vector)
+{
+	XMMATRIX mtxRotate = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(Vector));
+	m_xmf4x4Transform = Matrix4x4::Multiply(mtxRotate, m_xmf4x4Transform);
+
+	UpdateTransform(NULL);
+}
+
+void CGameObject::Rotate(XMFLOAT4X4& Matrix)
+{
+	m_xmf4x4Transform = Matrix;
+
+	UpdateTransform(NULL);
+}
+
 void CGameObject::Rotate(XMFLOAT4 *pxmf4Quaternion)
 {
 	XMMATRIX mtxRotate = XMMatrixRotationQuaternion(XMLoadFloat4(pxmf4Quaternion));

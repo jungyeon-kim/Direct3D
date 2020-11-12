@@ -254,3 +254,46 @@ ID3D12Resource* CreateTexture2DResource(ID3D12Device* pd3dDevice, ID3D12Graphics
 	return(pd3dTexture);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+//함수포인터와 호출시간을 가지고있는 구조체이다.
+struct Event
+{
+	function<void()> CallBack{};
+	high_resolution_clock::time_point WakeUpTime{};
+
+	constexpr bool operator>(const Event& Rhs) const
+	{
+		return WakeUpTime > Rhs.WakeUpTime;
+	}
+};
+
+//Event 구조체를 가지는 우선순위 큐 자료구조이다. WakeUpTime이 작을수록 우선순위가 높다.
+priority_queue<Event, vector<Event>, greater<Event>> TimerQueue;
+
+//타이머 큐에 이벤트를 추가한다.
+void AddTimerQueue(function<void()> CallBack, int Duration)
+{
+	Event Event{ CallBack, high_resolution_clock::now() + milliseconds{ Duration } };
+	TimerQueue.push(Event);
+}
+
+//타이머 스레드이다.
+void TimerThread()
+{
+	while (true)
+	{
+		this_thread::sleep_for(1ms);
+
+		while (true)
+		{
+			if (TimerQueue.empty() || TimerQueue.top().WakeUpTime > high_resolution_clock::now()) break;
+
+			Event Event{ TimerQueue.top() };
+			TimerQueue.pop();
+
+			//등록된 함수를 호출한다.
+			Event.CallBack();
+		}
+	}
+}

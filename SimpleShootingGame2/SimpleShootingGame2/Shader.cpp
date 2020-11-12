@@ -4,6 +4,7 @@
 
 #include "stdafx.h"
 #include "Shader.h"
+#include "Player.h"
 
 CShader::CShader()
 {
@@ -522,6 +523,28 @@ void CObjectsShader::AnimateObjects(float fTimeElapsed)
 {
 }
 
+void CObjectsShader::AnimateObjects(CPlayer* Player, float fTimeElapsed)
+{
+	for (int i = 0; i < m_nObjects; i++) 
+		if (m_ppObjects[i])
+		{
+			// 오브젝트가 플레이어를 바라보는 방향을 구한다.
+			XMFLOAT3 vLookAt{ Vector3::Normalize(Vector3::Subtract(Player->GetPosition(), m_ppObjects[i]->GetPosition())) };
+			// 오브젝트가 플레이어를 바라보도록 하는 회전행렬을 구한다.
+			XMFLOAT4X4 mtxLookAt{ Matrix4x4::LookAtLH(m_ppObjects[i]->GetPosition(), Player->GetPosition(), XMFLOAT3{0.0f, 1.0f, 0.0f}) };
+			// LookAtLH는 뷰행렬을 반환하므로 월드행렬로 변환(전치)시킨다.
+			mtxLookAt._41 = mtxLookAt._42 = mtxLookAt._43 = 0.0f;
+			mtxLookAt = Matrix4x4::Transpose(mtxLookAt);
+			// 회전행렬에 오브젝트의 현재위치를 넣어 완전한 월드행렬을 만든다.
+			mtxLookAt._41 = m_ppObjects[i]->GetPosition().x;	
+			mtxLookAt._42 = m_ppObjects[i]->GetPosition().y;	
+			mtxLookAt._43 = m_ppObjects[i]->GetPosition().z;
+			// 회전 및 이동시킨다.
+			m_ppObjects[i]->Rotate(mtxLookAt);
+			m_ppObjects[i]->Move(vLookAt, 0.2f);
+		}
+}
+
 void CObjectsShader::ReleaseUploadBuffers()
 {
 	for (int j = 0; j < m_nObjects; j++) if (m_ppObjects[j]) m_ppObjects[j]->ReleaseUploadBuffers();
@@ -533,7 +556,7 @@ void CObjectsShader::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera 
 
 	for (int j = 0; j < m_nObjects; j++)
 	{
-		if (m_ppObjects[j])
+		if (m_ppObjects[j] && !m_ppObjects[j]->GetIsAttacked())
 		{
 			m_ppObjects[j]->Animate(0.16f);
 			m_ppObjects[j]->UpdateTransform(NULL);

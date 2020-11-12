@@ -24,8 +24,13 @@
 #include <fstream>
 #include <vector>
 #include <memory>
+#include <functional>
+#include <thread>
+#include <chrono>
+#include <queue>
 
 using namespace std;
+using namespace std::chrono;
 
 #include <d3d12.h>
 #include <dxgi1_4.h>
@@ -81,6 +86,9 @@ using Microsoft::WRL::ComPtr;
 extern UINT gnCbvSrvDescriptorIncrementSize;
 extern UINT	gnRtvDescriptorIncrementSize;
 extern UINT gnDsvDescriptorIncrementSize;
+
+void AddTimerQueue(std::function<void()> CallBack, int Duration);
+void TimerThread();
 
 extern void SynchronizeResourceTransition(ID3D12GraphicsCommandList* pd3dCommandList, ID3D12Resource* pd3dResource, D3D12_RESOURCE_STATES d3dStateBefore, D3D12_RESOURCE_STATES d3dStateAfter);
 extern void WaitForGpuComplete(ID3D12CommandQueue* pd3dCommandQueue, ID3D12Fence* pd3dFence, UINT64 nFenceValue, HANDLE hFenceEvent);

@@ -82,11 +82,14 @@ void CScene::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *p
 	m_pBillboardShader = new CBillboardObjectsShader();
 	m_pBillboardShader->CreateShader(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT);
 	m_pBillboardShader->BuildObjects(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, m_pTerrain);
-
-	m_pBillboardParticleShader = new CBillboardParticleShader();
-	m_pBillboardParticleShader->CreateShader(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT);
-	m_pBillboardParticleShader->BuildObjects(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, m_pTerrain);
-	dynamic_cast<CBillboardParticleShader*>(m_pBillboardParticleShader)->UpdateBillboard();
+	
+	m_pBillboardParticleShader = new CBillboardParticleShader[NumOfParticle];
+	for (int i = 0; i < 30; ++i)
+	{
+		m_pBillboardParticleShader[i].CreateShader(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT);
+		m_pBillboardParticleShader[i].BuildObjects(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, m_pTerrain);
+		m_pBillboardParticleShader[i].UpdateBillboard();
+	}
 
 	m_pPlaneShader = new CPlaneShader();
 	m_pPlaneShader->CreateShader(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature);
@@ -395,9 +398,9 @@ void CScene::ProcessCollision()
 
 			if (IsCollided(LeftBox, RightBox))
 			{
-				static auto Shader{ dynamic_cast<CBillboardParticleShader*>(m_pBillboardParticleShader) };
-				Shader->SetTexIdx(0);
-				Shader->SetPosition(Objects[i]->GetPosition());
+				m_pBillboardParticleShader[i].SetTexIdx(0);
+				m_pBillboardParticleShader[i].SetPosition(Objects[i]->GetPosition());
+				AddTimerQueue([=]() { Objects[i]->SetIsAttacked(true); }, 200);
 			}
 		}
 	}
@@ -408,7 +411,8 @@ void CScene::AnimateObjects(float fTimeElapsed)
 	for (int i = 0; i < m_nGameObjects; i++) if (m_ppGameObjects[i]) m_ppGameObjects[i]->Animate(fTimeElapsed, NULL);
 	for (int i = 0; i < m_nGameObjects; i++) if (m_ppGameObjects[i]) m_ppGameObjects[i]->UpdateTransform(NULL);
 
-	for (int i = 0; i < m_nShaders; i++) if (m_ppShaders[i]) m_ppShaders[i]->AnimateObjects(fTimeElapsed);
+	static const auto ObjectShader{ dynamic_cast<CObjectsShader*>(m_ppShaders[0]) };
+	if (ObjectShader) ObjectShader->AnimateObjects(m_pPlayer, fTimeElapsed);
 
 	if (m_pPlaneShader) m_pPlaneShader->AnimateObjects(fTimeElapsed);
 	
@@ -431,20 +435,26 @@ void CScene::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera
 	D3D12_GPU_VIRTUAL_ADDRESS d3dcbLightsGpuVirtualAddress = m_pd3dcbLights->GetGPUVirtualAddress();
 	pd3dCommandList->SetGraphicsRootConstantBufferView(2, d3dcbLightsGpuVirtualAddress); //Lights
 
-	static auto Shader{ dynamic_cast<CBillboardParticleShader*>(m_pBillboardParticleShader) };
 	static int Count{};
 	++Count;
 	if (Count > 5)
 	{
-		Shader->UpdateBillboard();
+		for(int i = 0; i < NumOfParticle; ++i) m_pBillboardParticleShader[i].UpdateBillboard();
 		Count = 0;
 	}
 
 	if (m_pSkyBox) m_pSkyBox->Render(pd3dCommandList, pCamera);
 	if (m_pTerrain) m_pTerrain->Render(pd3dCommandList, pCamera);
 	if (m_pBillboardShader) m_pBillboardShader->Render(pd3dCommandList, pCamera);
-	if (m_pBillboardParticleShader && Shader->GetTexIdx() < 7) m_pBillboardParticleShader->Render(pd3dCommandList, pCamera);
 	if (m_pPlaneShader) m_pPlaneShader->Render(pd3dCommandList, pCamera);
+
+	static const auto ObjectShader{ dynamic_cast<CObjectsShader*>(m_ppShaders[0]) };
+	static const auto Objects{ ObjectShader->GetObjects() };
+	for (int i = 0; i < NumOfParticle; ++i)
+	{
+		if (m_pBillboardParticleShader[i].GetTexIdx() < 7 && !Objects[i]->GetIsAttacked())
+			m_pBillboardParticleShader[i].Render(pd3dCommandList, pCamera);
+	}
 
 	for (int i = 0; i < m_nGameObjects; i++) if (m_ppGameObjects[i]) m_ppGameObjects[i]->Render(pd3dCommandList, pCamera);
 	for (int i = 0; i < m_nShaders; i++) if (m_ppShaders[i]) m_ppShaders[i]->Render(pd3dCommandList, pCamera);

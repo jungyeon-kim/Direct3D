@@ -34,6 +34,8 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 
 	hAccelTable = ::LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_SIMPLESHOOTINGGAME2));
 
+	std::thread Timer{ TimerThread };
+
 	while (1)
 	{
 		if (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -50,6 +52,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 			gGameFramework.FrameAdvance();
 		}
 	}
+	Timer.join();
 	gGameFramework.OnDestroy();
 
 	return((int)msg.wParam);

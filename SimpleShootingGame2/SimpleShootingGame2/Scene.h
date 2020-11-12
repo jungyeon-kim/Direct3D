@@ -39,6 +39,8 @@ struct LIGHTS
 
 class CScene
 {
+private:
+	static constexpr int NumOfParticle{ 30 };
 protected:
 	CHeightMapTerrain* m_pTerrain = NULL;
 public:
@@ -80,7 +82,7 @@ public:
 	CShader								**m_ppShaders = NULL;
 	CShader								*m_pTerrainShader = NULL;
 	CShader								*m_pBillboardShader = NULL;
-	CShader								*m_pBillboardParticleShader = NULL;
+	CBillboardParticleShader			*m_pBillboardParticleShader = NULL;
 	CShader								*m_pPlaneShader = NULL;
 
 	CSkyBox								*m_pSkyBox = NULL;
