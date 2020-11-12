@@ -152,7 +152,7 @@ class CGameObject
 {
 private:
 	int								m_nReferences = 0;
-
+	class CBillboardParticleShader	* m_pBillboardParticleShader = NULL;
 public:
 	void AddRef();
 	void Release();
@@ -228,6 +228,9 @@ public:
 	CGameObject *FindFrame(char *pstrFrameName);
 
 	int FindReplicatedTexture(_TCHAR* pstrTextureName, D3D12_GPU_DESCRIPTOR_HANDLE* pd3dSrvGpuDescriptorHandle);
+
+	class CBillboardParticleShader* GetParticleShader() const;
+	void SetParticleShader(CBillboardParticleShader* NewShader);
 
 	UINT GetMeshType() { return((m_pMesh) ? m_pMesh->GetType() : 0x00); }
 

@@ -224,6 +224,45 @@ public:
 	CTexture* m_pBillboardTexture = NULL;
 };
 
+class CBillboardParticleShader : public CShader
+{
+private:
+	ID3D12Device* Device{};
+	ID3D12GraphicsCommandList* CommandList{};
+	int TexIdx{};
+	XMFLOAT3 Position{};
+public:
+	CBillboardParticleShader();
+	virtual ~CBillboardParticleShader();
+
+	virtual void CreateShader(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature,
+		D3D12_PRIMITIVE_TOPOLOGY_TYPE pd3dType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+
+	virtual D3D12_INPUT_LAYOUT_DESC CreateInputLayout();
+	virtual D3D12_RASTERIZER_DESC CreateRasterizerState();
+
+	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
+	virtual D3D12_SHADER_BYTECODE CreatePixelShader();
+	virtual D3D12_SHADER_BYTECODE CreateGeometryShader();
+
+	virtual void UpdateBillboard();
+
+	virtual void BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature, void* pContext = NULL);
+	virtual void ReleaseObjects();
+	virtual void ReleaseUploadBuffers();
+
+	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, int nPipelineState = 0);
+
+	int GetTexIdx() const { return TexIdx; }
+	XMFLOAT3 GetPosition() const { return Position; }
+
+	void SetTexIdx(int NewIdx) { TexIdx = NewIdx; }
+	void SetPosition(const XMFLOAT3& NewPosition) { Position = NewPosition; }
+
+	CGeometryBillboardMesh* m_pGeometryBillboardMesh = NULL;
+	CTexture* m_pBillboardTexture = NULL;
+};
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class CPlaneShader : public CShader

@@ -630,6 +630,16 @@ int CGameObject::FindReplicatedTexture(_TCHAR* pstrTextureName, D3D12_GPU_DESCRI
 	return(nParameterIndex);
 }
 
+CBillboardParticleShader* CGameObject::GetParticleShader() const
+{
+	return m_pBillboardParticleShader;
+}
+
+void CGameObject::SetParticleShader(CBillboardParticleShader* NewShader)
+{
+	m_pBillboardParticleShader = NewShader;
+}
+
 BoundingOrientedBox CGameObject::GetBoundingBox() const
 {
 	return m_pMesh ? m_pMesh->GetBoundingBox() : BoundingOrientedBox{};
