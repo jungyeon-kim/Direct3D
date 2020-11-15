@@ -1033,17 +1033,26 @@ D3D12_SHADER_BYTECODE CBillboardParticleShader::CreateGeometryShader()
 
 void CBillboardParticleShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature, void* pContext)
 {
-	m_pBillboardTexture = new CTexture(7, RESOURCE_TEXTURE2D, 0, 1);
+	m_pBillboardTexture = new CTexture(16, RESOURCE_TEXTURE2D, 0, 1);
 
-	m_pBillboardTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Billboard/Grass01.dds", RESOURCE_TEXTURE2D, 0);
-	m_pBillboardTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Billboard/Grass02.dds", RESOURCE_TEXTURE2D, 1);
-	m_pBillboardTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Billboard/Flower01.dds", RESOURCE_TEXTURE2D, 2);
-	m_pBillboardTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Billboard/Flower02.dds", RESOURCE_TEXTURE2D, 3);
-	m_pBillboardTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Billboard/Tree01.dds", RESOURCE_TEXTURE2D, 4);
-	m_pBillboardTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Billboard/Tree02.dds", RESOURCE_TEXTURE2D, 5);
-	m_pBillboardTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Billboard/Tree03.dds", RESOURCE_TEXTURE2D, 6);
+	m_pBillboardTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Particle/Bomb1.dds", RESOURCE_TEXTURE2D, 0);
+	m_pBillboardTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Particle/Bomb2.dds", RESOURCE_TEXTURE2D, 1);
+	m_pBillboardTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Particle/Bomb3.dds", RESOURCE_TEXTURE2D, 2);
+	m_pBillboardTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Particle/Bomb4.dds", RESOURCE_TEXTURE2D, 3);
+	m_pBillboardTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Particle/Bomb5.dds", RESOURCE_TEXTURE2D, 4);
+	m_pBillboardTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Particle/Bomb6.dds", RESOURCE_TEXTURE2D, 5);
+	m_pBillboardTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Particle/Bomb7.dds", RESOURCE_TEXTURE2D, 6);
+	m_pBillboardTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Particle/Bomb8.dds", RESOURCE_TEXTURE2D, 7);
+	m_pBillboardTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Particle/Bomb9.dds", RESOURCE_TEXTURE2D, 8);
+	m_pBillboardTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Particle/Bomb10.dds", RESOURCE_TEXTURE2D, 9);
+	m_pBillboardTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Particle/Bomb11.dds", RESOURCE_TEXTURE2D, 10);
+	m_pBillboardTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Particle/Bomb12.dds", RESOURCE_TEXTURE2D, 11);
+	m_pBillboardTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Particle/Bomb13.dds", RESOURCE_TEXTURE2D, 12);
+	m_pBillboardTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Particle/Bomb14.dds", RESOURCE_TEXTURE2D, 13);
+	m_pBillboardTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Particle/Bomb15.dds", RESOURCE_TEXTURE2D, 14);
+	m_pBillboardTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Particle/Bomb16.dds", RESOURCE_TEXTURE2D, 15);
 
-	CreateCbvSrvDescriptorHeaps(pd3dDevice, 0, 7);
+	CreateCbvSrvDescriptorHeaps(pd3dDevice, 0, 16);
 	CreateShaderResourceViews(pd3dDevice, m_pBillboardTexture, 0, 11);
 
 	Device = pd3dDevice;
@@ -1068,7 +1077,7 @@ void CBillboardParticleShader::UpdateBillboard()
 
 	pGeometryBillboardVertice->m_xmf3Position = Position;
 	pGeometryBillboardVertice->m_xmf2Size = XMFLOAT2{ 50.0f, 50.0f };
-	pGeometryBillboardVertice->m_nTexture = TexIdx++ % 7;
+	pGeometryBillboardVertice->m_nTexture = TexIdx++ % 16;
 
 	m_pGeometryBillboardMesh = new CGeometryBillboardMesh(Device, CommandList, pGeometryBillboardVertice, 1);
 

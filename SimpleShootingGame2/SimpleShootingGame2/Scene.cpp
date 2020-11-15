@@ -396,11 +396,13 @@ void CScene::ProcessCollision()
 			LeftBox.Transform(LeftBox, XMLoadFloat4x4(&Objects[i]->GetWorldMatrix()));
 			RightBox.Transform(RightBox, XMLoadFloat4x4(&Bullets[j]->GetWorldMatrix()));
 
-			if (IsCollided(LeftBox, RightBox))
+			static bool* Flag{ new bool[ObjectShader->GetNumOfObjects()]{} };
+			if (IsCollided(LeftBox, RightBox) && !Flag[i])
 			{
 				m_pBillboardParticleShader[i].SetTexIdx(0);
 				m_pBillboardParticleShader[i].SetPosition(Objects[i]->GetPosition());
-				AddTimerQueue([=]() { Objects[i]->SetIsAttacked(true); }, 200);
+				AddTimerQueue([=]() { Objects[i]->SetIsAttacked(true); }, 500);
+				Flag[i] = true;
 			}
 		}
 	}
@@ -452,7 +454,7 @@ void CScene::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera
 	static const auto Objects{ ObjectShader->GetObjects() };
 	for (int i = 0; i < NumOfParticle; ++i)
 	{
-		if (m_pBillboardParticleShader[i].GetTexIdx() < 7 && !Objects[i]->GetIsAttacked())
+		if (m_pBillboardParticleShader[i].GetTexIdx() < 16 && !Objects[i]->GetIsAttacked())
 			m_pBillboardParticleShader[i].Render(pd3dCommandList, pCamera);
 	}
 
