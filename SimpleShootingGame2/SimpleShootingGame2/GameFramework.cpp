@@ -318,6 +318,12 @@ void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPA
 					break;
 				case VK_RETURN:
 					break;
+				case VK_F1:
+					isSolid = true;
+					break;
+				case VK_F2:
+					isSolid = false;
+					break;
 				case VK_F9:
 					ChangeSwapChainState();
 					break;

@@ -1057,14 +1057,16 @@ CHeightMapTerrain::CHeightMapTerrain(ID3D12Device* pd3dDevice, ID3D12GraphicsCom
 			xStart = x * (nBlockWidth - 1);
 			zStart = z * (nBlockLength - 1);
 
-			pHeightMapGridMesh = new CHeightMapGridMesh(pd3dDevice, pd3dCommandList, xStart,
-			zStart, nBlockWidth, nBlockLength, xmf3Scale, xmf4Color, m_pHeightMapImage);
+			pHeightMapGridMesh = new CHeightMapGridMesh(pd3dDevice, pd3dCommandList, xStart, zStart, 
+				nBlockWidth, nBlockLength, xmf3Scale, xmf4Color, m_pHeightMapImage);
 			SetMesh(x + (z * cxBlocks), pHeightMapGridMesh);
 		}
 	}
 
-	CTerrainShader *pShader = new CTerrainShader();
-	pShader->CreateShader(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
+	CTerrainTessellationShader* pShader = new CTerrainTessellationShader();
+	pShader->CreateShader(pd3dDevice, pd3dGraphicsRootSignature);
+	//CTerrainShader *pShader = new CTerrainShader();
+	//pShader->CreateShader(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
 	SetShader(pShader);
 }
 CHeightMapTerrain::~CHeightMapTerrain(void)

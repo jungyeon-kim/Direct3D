@@ -35,7 +35,7 @@ public:
 
 class CDiffusedVertex : public CVertex
 {
-protected:
+public:
 	XMFLOAT4 m_xmf4Diffuse;
 public:
 	CDiffusedVertex() = default;

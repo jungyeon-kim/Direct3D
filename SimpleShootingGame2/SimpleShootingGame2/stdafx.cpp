@@ -6,6 +6,8 @@
 #include "DDSTextureLoader12.h"
 #include "WICTextureLoader12.h"
 
+bool isSolid = true;
+
 UINT gnRtvDescriptorIncrementSize = 0;
 UINT gnDsvDescriptorIncrementSize = 0;
 UINT gnCbvSrvDescriptorIncrementSize = 0;
